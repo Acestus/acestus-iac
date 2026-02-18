@@ -21,7 +21,7 @@ variable "environment" {
 
 variable "caf_location" {
   type        = string
-  description = "The Cloud Adoption Framework location abbreviation (e.g., usw2)"
+  description = "The Cloud Adoption Framework location abbreviation (e.g., sea)"
 }
 
 variable "instance_number" {

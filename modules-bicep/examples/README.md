@@ -11,7 +11,7 @@
 
 ### 1. Reference Format
 ```bicep
-module storage 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/storage-account:v1.0.0' = {
+module storage 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/storage-account:v1.0.0' = {
   name: 'customStorage'
   params: {
     // module parameters
@@ -58,7 +58,7 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.18.1' = {
 
 ### After (using custom module):
 ```bicep
-module storageAccount 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/storage-account:v1.0.0' = {
+module storageAccount 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/storage-account:v1.0.0' = {
   name: storageName
   params: {
     storageAccountName: storageName

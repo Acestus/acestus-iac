@@ -1,7 +1,7 @@
 $Subscription = "Onln-520-ApplicationDevelopment"
-$StackName = "stack-mgmt520-onln-usw2-prd"
-$RGName = "rg-mgmt520-onln-usw2-prd"
-$storageAccountName = "stmgmt520onlnusw2prd"
+$StackName = "stack-mgmt520-onln-eus2-prd"
+$RGName = "rg-mgmt520-onln-eus2-prd"
+$storageAccountName = "stmgmt520onlneus2prd"
 
 Set-AzContext -Subscription $Subscription
 Get-AzSubscription -SubscriptionName $Subscription

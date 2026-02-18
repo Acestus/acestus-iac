@@ -15,7 +15,7 @@ spec:
           restartPolicy: Never
           containers:
             - name: time-logger
-              image: acrskpmgtcrdevusw2001.azurecr.io/time-logger:latest
+              image: acrskpmgtcrdeveus1001.azurecr.io/time-logger:latest
               imagePullPolicy: Always
               env:
                 - name: AZURE_STORAGE_CONNECTION_STRING

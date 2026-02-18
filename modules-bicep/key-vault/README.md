@@ -28,10 +28,10 @@ Custom Bicep module for Key Vault using AVM with Acestus defaults.
 ## Example
 
 ```bicep
-module keyVault 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/key-vault:v1.0.0' = {
+module keyVault 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/key-vault:v1.0.0' = {
   name: 'keyVault'
   params: {
-    name: 'kv-myapp-dev-usw2-001'
+    name: 'kv-myapp-dev-wus3-001'
     location: location
     tags: tags
     enableRbacAuthorization: true

@@ -34,8 +34,8 @@ az identity show \
 
 ```bash
 az identity create \
-  --name "umi-myproject-prd-usw2-001" \
-  --resource-group "rg-myproject-prd-usw2-001" \
+  --name "umi-myproject-prd-swc-001" \
+  --resource-group "rg-myproject-prd-swc-001" \
   --location "westus2"
 ```
 
@@ -60,8 +60,8 @@ az identity federated-credential create \
 ```bash
 az identity federated-credential create \
   --name "github-your-org-your-repo-env-prd" \
-  --identity-name "umi-myproject-prd-usw2-001" \
-  --resource-group "rg-myproject-prd-usw2-001" \
+  --identity-name "umi-myproject-prd-swc-001" \
+  --resource-group "rg-myproject-prd-swc-001" \
   --issuer "https://token.actions.githubusercontent.com" \
   --subject "repo:your-org/your-repo:environment:prd" \
   --audiences "api://AzureADTokenExchange"
@@ -86,8 +86,8 @@ az identity federated-credential create \
 ```bash
 az identity federated-credential create \
   --name "github-your-org-your-repo-main" \
-  --identity-name "umi-myproject-prd-usw2-001" \
-  --resource-group "rg-myproject-prd-usw2-001" \
+  --identity-name "umi-myproject-prd-swc-001" \
+  --resource-group "rg-myproject-prd-swc-001" \
   --issuer "https://token.actions.githubusercontent.com" \
   --subject "repo:your-org/your-repo:ref:refs/heads/main" \
   --audiences "api://AzureADTokenExchange"
@@ -244,19 +244,19 @@ LAW_SUBSCRIPTION_ID="<your-monitoring-subscription-id>"
 az role assignment create \
   --assignee "$CLIENT_ID" \
   --role "AcrPull" \
-  --scope "/subscriptions/$ACR_SUBSCRIPTION_ID/resourceGroups/rg-acr-dev-usw2-001/providers/Microsoft.ContainerRegistry/registries/acrcompanydevusw2001"
+  --scope "/subscriptions/$ACR_SUBSCRIPTION_ID/resourceGroups/rg-acr-dev-swc-001/providers/Microsoft.ContainerRegistry/registries/acrcompanydevswc001"
 
 # Grant AcrPush for pushing built images
 az role assignment create \
   --assignee "$CLIENT_ID" \
   --role "AcrPush" \
-  --scope "/subscriptions/$ACR_SUBSCRIPTION_ID/resourceGroups/rg-acr-dev-usw2-001/providers/Microsoft.ContainerRegistry/registries/acrcompanydevusw2001"
+  --scope "/subscriptions/$ACR_SUBSCRIPTION_ID/resourceGroups/rg-acr-dev-swc-001/providers/Microsoft.ContainerRegistry/registries/acrcompanydevswc001"
 
 # Grant AKS cluster access for kubectl operations
 az role assignment create \
   --assignee "$CLIENT_ID" \
   --role "Azure Kubernetes Service Cluster User Role" \
-  --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/rg-myapp-dev-usw2-001/providers/Microsoft.ContainerService/managedClusters/aks-myapp-dev-usw2-001"
+  --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/rg-myapp-dev-swc-001/providers/Microsoft.ContainerService/managedClusters/aks-myapp-dev-swc-001"
 
 # Grant Log Analytics workspace access for AKS monitoring
 az role assignment create \
@@ -313,7 +313,7 @@ gh variable set <PROJECT>_<SUBSCRIPTION_NAME> \
 **Example:**
 
 ```bash
-gh variable set UMI_MYPROJECT_PRD_USW2_001 \
+gh variable set UMI_MYPROJECT_PRD_swc_001 \
   --org your-org \
   --body "<your-client-id>"
 
@@ -453,7 +453,7 @@ gh variable list --repo <org>/<repo>
 ### Managed Identity
 
 - Format: `umi-<project>-<env>-<region>-<seq>`
-- Example: `umi-myproject-prd-usw2-001`
+- Example: `umi-myproject-prd-swc-001`
 
 ### Federated Credential
 
@@ -463,7 +463,7 @@ gh variable list --repo <org>/<repo>
 ### GitHub Variables
 
 - Format: `UMI_<PROJECT>_<ENV>_<REGION>_<SEQ>`
-- Example: `UMI_MYPROJECT_PRD_USW2_001`
+- Example: `UMI_MYPROJECT_PRD_swc_001`
 
 ## References
 
@@ -479,15 +479,15 @@ Here's a complete setup for the dashboard-edm project:
 ```bash
 # 1. Create managed identity
 az identity create \
-  --name "umi-myproject-prd-usw2-001" \
-  --resource-group "rg-myproject-prd-usw2-001" \
+  --name "umi-myproject-prd-swc-001" \
+  --resource-group "rg-myproject-prd-swc-001" \
   --location "westus2"
 
 # 2. Configure OIDC
 az identity federated-credential create \
   --name "github-your-org-your-repo-env-prd" \
-  --identity-name "umi-myproject-prd-usw2-001" \
-  --resource-group "rg-myproject-prd-usw2-001" \
+  --identity-name "umi-myproject-prd-swc-001" \
+  --resource-group "rg-myproject-prd-swc-001" \
   --issuer "https://token.actions.githubusercontent.com" \
   --subject "repo:your-org/your-repo:environment:prd" \
   --audiences "api://AzureADTokenExchange"
@@ -515,7 +515,7 @@ az role assignment create \
   --scope "/subscriptions/<your-subscription-id>"
 
 # 4. Set GitHub variables
-gh variable set UMI_MYPROJECT_PRD_USW2_001 --org your-org --body "<your-client-id>"
+gh variable set UMI_MYPROJECT_PRD_swc_001 --org your-org --body "<your-client-id>"
 gh variable set AZURE_TENANT_ID --org your-org --body "<your-tenant-id>"
 gh variable set AZURE_SUBSCRIPTION_ID --org your-org --body "<your-subscription-id>"
 ```

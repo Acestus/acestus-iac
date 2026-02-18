@@ -49,7 +49,7 @@ jobs:
     uses: ./.github/workflows/aks-deploy-dotnet.yaml
     with:
       environment: prd
-      resource_group_name: rg-myapp-prd-usw2
+      resource_group_name: rg-myapp-prd-swc
       stack_name: stack-myapp-prd
       acr_name: ${{ vars.ACR_NAME }}
       applications_json: |

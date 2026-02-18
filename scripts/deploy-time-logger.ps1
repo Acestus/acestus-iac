@@ -10,9 +10,9 @@ param(
 $ErrorActionPreference = 'Stop'
 
 # Resource names
-$resourceGroup = "rg-timelogger-$Environment-usw2-001"
-$storageAccount = "sttimelogger$($Environment)usw2001"
-$aksCluster = "aks-timelogger-$Environment-usw2-001"
+$resourceGroup = "rg-timelogger-$Environment-ukw-001"
+$storageAccount = "sttimelogger$($Environment)ukw001"
+$aksCluster = "aks-timelogger-$Environment-ukw-001"
 
 Write-Host "Getting storage connection string..." -ForegroundColor Cyan
 $connectionString = az storage account show-connection-string `
@@ -37,7 +37,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "Building and pushing time-logger image..." -ForegroundColor Cyan
-$acrName = "<your-acr-name>"  # e.g., acrtimeloggerdevusw2001
+$acrName = "<your-acr-name>"  # e.g., acrtimeloggerdevukw001
 docker build -t "$acrName.azurecr.io/time-logger:latest" ./time-logger
 
 if ($LASTEXITCODE -ne 0) {

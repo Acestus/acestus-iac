@@ -10,7 +10,7 @@ param(
     [string]$Version,
     
     [Parameter(Mandatory = $false)]
-    [string]$RegistryName = "acracemgtcrdevusw2001",
+    [string]$RegistryName = "acracemgtcrdevneu001",
     
     [Parameter(Mandatory = $false)]
     [string]$ModulePrefix = "terraform/modules",

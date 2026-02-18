@@ -5,7 +5,7 @@ param InstanceNumber string = '001'
 var storageSKU = 'Standard_ZRS'
 var location = 'westus2'
 var ResourceName = 'st'
-var Resourcelocation = 'usw2'
+var Resourcelocation = 'ase'
 var storageName = '${ResourceName}${ProjectName}${Environment}${Resourcelocation}${InstanceNumber}'
 var allowedIP = '192.16.122.254'
 

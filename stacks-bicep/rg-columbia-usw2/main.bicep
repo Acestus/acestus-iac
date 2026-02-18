@@ -20,7 +20,7 @@ param projectName string = 'columbia'
 param environment string = 'prd'
 
 @description('The CAF location suffix.')
-param CAFLocation string = 'usw2'
+param CAFLocation string = 'eus2'
 
 @description('The instance number suffix.')
 param instanceNumber string = '001'
@@ -82,7 +82,7 @@ var subnetConfig = !empty(nsgResourceId) ? {
 // ============================================================================
 // Virtual Network
 // ============================================================================
-module vnet 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/virtual-network:v1.1.0' = {
+module vnet 'br:acracemgtcrprdeus2001.azurecr.io/bicep/modules/virtual-network:v1.1.0' = {
   name: '${deployment().name}-vnet'
   params: {
     name: vnetName
@@ -118,7 +118,7 @@ module vnet 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/virtual-network:v
 // ============================================================================
 // Windows computer names max 15 chars
 
-module avdSessionHosts 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/virtual-machine:v1.1.0' = [for i in range(1, avdHostCount): {
+module avdSessionHosts 'br:acracemgtcrprdeus2001.azurecr.io/bicep/modules/virtual-machine:v1.1.0' = [for i in range(1, avdHostCount): {
   name: '${deployment().name}-vm-${i}'
   params: {
     name: 'vm-${projectName}-${padLeft(string(i), 3, '0')}'  // e.g., vm-columbia-001 (14 chars)

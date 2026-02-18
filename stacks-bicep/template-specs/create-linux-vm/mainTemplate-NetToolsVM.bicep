@@ -13,10 +13,10 @@ param adminUsername string = 'afuqua'
 param adminPassword string
 
 @description('Resource ID of the subnet.')
-param SubnetID string = '/subscriptions/<subscription-id>/resourceGroups/rg-qa-Acestus-usw2-001/providers/Microsoft.Network/virtualNetworks/vnet-qa-Acestus-usw2-001/subnets/snet-qa-Acestus-usw2-001-bastion'
+param SubnetID string = '/subscriptions/<subscription-id>/resourceGroups/rg-qa-Acestus-ase-001/providers/Microsoft.Network/virtualNetworks/vnet-qa-Acestus-ase-001/subnets/snet-qa-Acestus-ase-001-bastion'
 
 var location = resourceGroup().location
-var cafName = '${projectName}-usw2-${instanceNumber}'
+var cafName = '${projectName}-ase-${instanceNumber}'
 var VMSize = 'Standard_B2s'
 var osDiskName = 'osdisk-${cafName}'
 var nicName = 'nic-${cafName}'

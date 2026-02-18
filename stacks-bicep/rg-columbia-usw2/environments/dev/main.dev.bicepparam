@@ -2,7 +2,7 @@ using '../../main.bicep'
 
 param projectName = 'columbia'
 param environment = 'dev'
-param CAFLocation = 'usw2'
+param CAFLocation = 'eus2'
 param instanceNumber = '001'
 
 // Dev environment - small /27 VNet (32 IPs) with /28 subnet (16 IPs)

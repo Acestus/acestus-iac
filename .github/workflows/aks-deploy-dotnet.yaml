@@ -222,7 +222,7 @@ jobs:
         run: |
           # REQUIRED PERMISSIONS:
           # Service principal/managed identity must have "Storage Blob Data Reader" role
-          # on source storage accounts (e.g., stapidevusw2001) for copy operations.
+          # on source storage accounts (e.g., stapideveus1001) for copy operations.
           # See MANAGED-IDENTITY-SETUP.md for complete permission requirements.
 
           APPLICATIONS='${{ inputs.applications_json }}'

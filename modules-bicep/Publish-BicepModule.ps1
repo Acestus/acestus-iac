@@ -10,7 +10,7 @@ param(
     [string]$Version,
     
     [Parameter(Mandatory = $false)]
-    [string]$RegistryName = "acrskpmgtcrdevusw2001",
+    [string]$RegistryName = "acrskpmgtcrdevwus3001",
     
     [Parameter(Mandatory = $false)]
     [string]$ModulePrefix = "bicep/modules",

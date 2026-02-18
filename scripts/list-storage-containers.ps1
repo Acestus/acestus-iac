@@ -8,10 +8,10 @@
     Requires Azure CLI to be installed and logged in.
 
 .PARAMETER StorageAccount
-    The storage account name. Defaults to stapidevusw2001.
+    The storage account name. Defaults to stapidevukw001.
 
 .PARAMETER ResourceGroup
-    The resource group name. Defaults to rg-api-dev-usw2-001.
+    The resource group name. Defaults to rg-api-dev-ukw-001.
 
 .EXAMPLE
     .\list-storage-containers.ps1
@@ -21,8 +21,8 @@
 #>
 
 param(
-    [string]$StorageAccount = "stapidevusw2001",
-    [string]$ResourceGroup = "rg-api-dev-usw2-001"
+    [string]$StorageAccount = "stapidevukw001",
+    [string]$ResourceGroup = "rg-api-dev-ukw-001"
 )
 
 $ErrorActionPreference = "Stop"

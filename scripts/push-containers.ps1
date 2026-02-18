@@ -4,7 +4,7 @@
 param(
     [string]$Tag = "latest",
     [string[]]$Apps = @("api-traffic", "fabric-sync"),
-    [string]$AcrName = "<your-acr-name>",  # e.g., acrtimeloggerdevusw2001
+    [string]$AcrName = "<your-acr-name>",  # e.g., acrtimeloggerdevukw001
     [string]$SubscriptionId = "<your-subscription-id>"
 )
 

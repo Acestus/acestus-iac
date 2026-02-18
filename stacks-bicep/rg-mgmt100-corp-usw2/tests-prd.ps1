@@ -1,7 +1,7 @@
 $Subscription = "Corp-100-Marketing"
-$StackName = "stack-mgmt100-corp-usw2-prd"
-$RGName = "rg-mgmt100-corp-usw2-prd"
-$storageAccountName = "stmgmt100corpusw2prd"
+$StackName = "stack-mgmt100-corp-eus2-prd"
+$RGName = "rg-mgmt100-corp-eus2-prd"
+$storageAccountName = "stmgmt100corpeus2prd"
 
 Set-AzContext -Subscription $Subscription
 Get-AzSubscription -SubscriptionName $Subscription

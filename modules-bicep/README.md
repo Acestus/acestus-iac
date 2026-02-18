@@ -41,5 +41,5 @@ cd scripts
 ## Prerequisites
 
 - Azure CLI installed and authenticated
-- Access to the Acestus ACR (acracemgtcrprdusw2001)
+- Access to the Acestus ACR (acracemgtcrprdwus3001)
 - AcrPush permissions on the container registry

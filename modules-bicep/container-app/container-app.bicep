@@ -70,7 +70,7 @@ var effectiveMinReplicas = scaleMinReplicas != 0 ? scaleMinReplicas : (scaleSett
 var effectiveMaxReplicas = scaleMaxReplicas != 10 ? scaleMaxReplicas : (scaleSettings.?maxReplicas ?? 10)
 var effectiveScaleRules = !empty(scaleRules) ? scaleRules : (scaleSettings.?rules ?? [])
 
-// Use the same AVM version as rg-aspire-usw2 stack for compatibility
+// Use the same AVM version as rg-aspire-wus3 stack for compatibility
 // Note: Parameters are passed through as-is to match the exact AVM interface
 module containerApp 'br/public:avm/res/app/container-app:0.20.0' = {
   name: '${deployment().name}-ca'

@@ -2,7 +2,7 @@ terraform {
   required_version = ">= 1.5.7"
   backend "azurerm" {
     resource_group_name  = "iac"
-    storage_account_name = "stdeviacusw2001"
+    storage_account_name = "stdeviacaue001"
     container_name       = "dev"
     key                  = "automation-account.tfstate"
   }

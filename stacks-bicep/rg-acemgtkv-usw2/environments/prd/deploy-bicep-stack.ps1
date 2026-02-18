@@ -2,7 +2,7 @@
 
 param(
     [string]$SubscriptionId = "7c486f82-99db-43fe-9858-78ae54a74f3b",
-    [string]$ResourceGroupName = "rg-acemgtkv-prd-usw2-001",
+    [string]$ResourceGroupName = "rg-acemgtkv-prd-eus2-001",
     [string]$ParameterFile = "main.bicepparam",
     [string]$Location = "West US 2"
 )

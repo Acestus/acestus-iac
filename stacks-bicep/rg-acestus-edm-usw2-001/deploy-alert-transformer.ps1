@@ -6,7 +6,7 @@ param(
     [string]$SubscriptionId = "8b67b073-f765-482f-82ad-ede639aef462",
     
     [Parameter(Mandatory = $false)]
-    [string]$ResourceGroupName = "rg-acestus-edm-usw2-001",
+    [string]$ResourceGroupName = "rg-acestus-edm-eus2-001",
     
     [Parameter(Mandatory = $false)]
     [string]$Location = "West US 2"
@@ -42,7 +42,7 @@ try {
     
     # Get existing function app
     Write-Host "📱 Getting existing function app..." -ForegroundColor Yellow
-    $functionAppName = "func-alert-edm-usw2-001"
+    $functionAppName = "func-alert-edm-eus2-001"
     $functionApp = Get-AzWebApp -ResourceGroupName $ResourceGroupName -Name $functionAppName
     if (-not $functionApp) {
         Write-Host "❌ Function app '$functionAppName' not found" -ForegroundColor Red

@@ -4,21 +4,21 @@
 
 ### ✅ Bicep Template Updates
 1. **Key Vault Templates** - All 8 Key Vault templates updated with private endpoint configuration:
-   - `rg-acemgtkv-dev-usw2-001` and `rg-acemgtkv-prd-usw2-001`
-   - `rg-aceanakv-dev-usw2-001` and `rg-aceanakv-prd-usw2-001` 
-   - `rg-aceedmkv-dev-usw2-001` and `rg-aceedmkv-prd-usw2-001`
-   - `rg-aceapdkv-dev-usw2-001` and `rg-aceapdkv-prd-usw2-001`
+   - `rg-acemgtkv-dev-neu-001` and `rg-acemgtkv-prd-neu-001`
+   - `rg-aceanakv-dev-neu-001` and `rg-aceanakv-prd-neu-001` 
+   - `rg-aceedmkv-dev-neu-001` and `rg-aceedmkv-prd-neu-001`
+   - `rg-aceapdkv-dev-neu-001` and `rg-aceapdkv-prd-neu-001`
 
 2. **App Service Plan Templates** - All 8 App Service Plan templates updated:
-   - `rg-acemgt-dev-usw2-001` and `rg-acemgt-prd-usw2-001`
-   - `rg-aceana-dev-usw2-001` and `rg-aceana-prd-usw2-001`
-   - `rg-aceedm-dev-usw2-001` and `rg-aceedm-prd-usw2-001` 
-   - `rg-aceapd-dev-usw2-001` and `rg-aceapd-prd-usw2-001`
+   - `rg-acemgt-dev-neu-001` and `rg-acemgt-prd-neu-001`
+   - `rg-aceana-dev-neu-001` and `rg-aceana-prd-neu-001`
+   - `rg-aceedm-dev-neu-001` and `rg-aceedm-prd-neu-001` 
+   - `rg-aceapd-dev-neu-001` and `rg-aceapd-prd-neu-001`
 
 ### ✅ Network Infrastructure Template
 - **VNet Subnet Additions** - Created `vnet-subnet-additions` template to add required subnets:
-  - `snet-app-integration-usw2` (10.65.64.0/27) with Web/serverFarms delegation
-  - `snet-private-endpoints-usw2` (10.65.65.0/27) for private endpoints
+  - `snet-app-integration-neu` (10.65.64.0/27) with Web/serverFarms delegation
+  - `snet-private-endpoints-neu` (10.65.65.0/27) for private endpoints
 
 ### ✅ Parameter File Updates
 - Updated all parameter files (.bicepparam) with network parameters:
@@ -36,14 +36,14 @@
 ## Network Architecture
 
 ### Existing Infrastructure Used
-- **Transit VNet**: `vnet-transit-conn-usw2-001` (10.65.0.0/18)
-- **Palo Alto Firewall**: `pfw-fw-usw2-003` (existing security infrastructure)
+- **Transit VNet**: `vnet-transit-conn-neu-001` (10.65.0.0/18)
+- **Palo Alto Firewall**: `pfw-fw-neu-003` (existing security infrastructure)
 - **Subscription**: 7c486f82-99db-43fe-9858-78ae54a74f3b
-- **Resource Group**: rg-transit-conn-usw2
+- **Resource Group**: rg-transit-conn-neu
 
 ### New Subnets Required
-- **App Integration**: `snet-app-integration-usw2` (10.65.64.0/27)
-- **Private Endpoints**: `snet-private-endpoints-usw2` (10.65.65.0/27)
+- **App Integration**: `snet-app-integration-neu` (10.65.64.0/27)
+- **Private Endpoints**: `snet-private-endpoints-neu` (10.65.65.0/27)
 
 ## Deployment Order
 
@@ -57,28 +57,28 @@ cd bicep\vnet-subnet-additions
 1. **Key Vault Resources** (required by App Services):
    ```powershell
    # Deploy all Key Vault resource groups first
-   cd bicep\rg-acemgtkv-dev-usw2-001
+   cd bicep\rg-acemgtkv-dev-neu-001
    .\deploy-bicep-stack.ps1
    
-   cd ..\rg-acemgtkv-prd-usw2-001  
+   cd ..\rg-acemgtkv-prd-neu-001  
    .\deploy-bicep-stack.ps1
    
    # Department Key Vaults
-   cd ..\rg-aceanakv-dev-usw2-001
+   cd ..\rg-aceanakv-dev-neu-001
    .\deploy-bicep-stack.ps1
    # ... continue for all departments
    ```
 
 2. **App Service Plans** (after Key Vaults exist):
    ```powershell
-   cd bicep\rg-acemgt-dev-usw2-001
+   cd bicep\rg-acemgt-dev-neu-001
    .\deploy-bicep-stack.ps1
    
-   cd ..\rg-acemgt-prd-usw2-001
+   cd ..\rg-acemgt-prd-neu-001
    .\deploy-bicep-stack.ps1
    
    # Department App Service Plans
-   cd ..\rg-aceana-dev-usw2-001
+   cd ..\rg-aceana-dev-neu-001
    .\deploy-bicep-stack.ps1
    # ... continue for all departments
    ```

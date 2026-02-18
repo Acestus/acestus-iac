@@ -1,4 +1,4 @@
-# Columbia AVD Stack (rg-columbia-usw2)
+# Columbia AVD Stack (rg-columbia-eus2)
 
 Azure Virtual Desktop infrastructure deployment with 3 session hosts on a dedicated virtual network.
 
@@ -6,13 +6,13 @@ Azure Virtual Desktop infrastructure deployment with 3 session hosts on a dedica
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│              VNet: vnet-columbia-prd-usw2           │
+│              VNet: vnet-columbia-prd-eus2           │
 │              Address Space: 10.86.0.0/22            │
 │                                                     │
 │  ┌───────────────────────────────────────────────┐  │
 │  │      Subnet: snet-avd-columbia                │  │
 │  │      Address: 10.86.0.0/24                    │  │
-│  │      NSG: nsg-columbia-avd-prd-usw2           │  │
+│  │      NSG: nsg-columbia-avd-prd-eus2           │  │
 │  │                                               │  │
 │  │  ┌─────────┐  ┌─────────┐  ┌─────────┐       │  │
 │  │  │  VM-01  │  │  VM-02  │  │  VM-03  │       │  │
@@ -27,8 +27,8 @@ Azure Virtual Desktop infrastructure deployment with 3 session hosts on a dedica
 
 | Resource Type | Name | Purpose |
 |---------------|------|---------|
-| Virtual Network | vnet-columbia-prd-usw2 | Network connectivity for AVD hosts |
-| Network Security Group | nsg-columbia-avd-prd-usw2 | Security rules for AVD traffic |
+| Virtual Network | vnet-columbia-prd-eus2 | Network connectivity for AVD hosts |
+| Network Security Group | nsg-columbia-avd-prd-eus2 | Security rules for AVD traffic |
 | Virtual Machine (x3) | vm-columbia-avd-01/02/03 | AVD session hosts |
 | Network Interfaces (x3) | nic-columbia-avd-01/02/03 | NIC for each VM |
 
@@ -58,14 +58,14 @@ Azure Virtual Desktop infrastructure deployment with 3 session hosts on a dedica
 
 1. Azure PowerShell module installed
 2. Logged into Azure (`Connect-AzAccount`)
-3. Resource group `rg-columbia-usw2` created
+3. Resource group `rg-columbia-eus2` created
 4. Admin password ready (secure string)
 
 ### Deploy
 
 ```powershell
 # From repository root
-.\scripts\deploy-bicep.ps1 -Stack rg-columbia-usw2 -Environment prd
+.\scripts\deploy-bicep.ps1 -Stack rg-columbia-eus2 -Environment prd
 
 # Or from this directory
 .\deploy-bicep-stack.ps1
@@ -76,7 +76,7 @@ Azure Virtual Desktop infrastructure deployment with 3 session hosts on a dedica
 ```powershell
 # Using deployment parameter
 az deployment group create \
-  --resource-group rg-columbia-usw2 \
+  --resource-group rg-columbia-eus2 \
   --template-file main.bicep \
   --parameters main.bicepparam \
   --parameters adminPassword='<your-secure-password>'

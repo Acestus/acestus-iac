@@ -41,10 +41,10 @@ This is a custom Bicep module for Azure Storage Accounts that implements Acestus
 
 ### Basic Storage Account
 ```bicep
-module storage 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/storage-account:v1.0.0' = {
+module storage 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/storage-account:v1.0.0' = {
   name: 'myStorage'
   params: {
-    storageAccountName: 'stmyappdevusw2001'
+    storageAccountName: 'stmyappdevwus3001'
     allowedIpRules: ['192.168.1.0/24']
   }
 }
@@ -52,10 +52,10 @@ module storage 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/storage-accoun
 
 ### Storage Account with Customer Managed Keys
 ```bicep
-module storage 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/storage-account:v1.0.0' = {
+module storage 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/storage-account:v1.0.0' = {
   name: 'myEncryptedStorage'
   params: {
-    storageAccountName: 'stmyappprdusw2001'
+    storageAccountName: 'stmyappprdwus3001'
     allowedIpRules: ['192.168.1.0/24']
     customerManagedKey: {
       keyName: 'storage-key'
@@ -71,10 +71,10 @@ module storage 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/storage-accoun
 
 ### Storage Account with Blob Containers
 ```bicep
-module storage 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/storage-account:v1.0.0' = {
+module storage 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/storage-account:v1.0.0' = {
   name: 'myStorageWithContainers'
   params: {
-    storageAccountName: 'stmyfuncprdusw2001'
+    storageAccountName: 'stmyfuncprdwus3001'
     allowedIpRules: ['192.168.1.0/24']
     blobContainers: [
       {

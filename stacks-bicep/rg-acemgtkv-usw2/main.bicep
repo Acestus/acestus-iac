@@ -20,7 +20,7 @@ param tags object = {}
 
 var keyVaultName = 'kv-${projectName}-${environment}-${CAFLocation}-${instanceNumber}'
 
-module keyVault 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/key-vault:v1.1.0' = {
+module keyVault 'br:acracemgtcrprdeus2001.azurecr.io/bicep/modules/key-vault:v1.1.0' = {
   name: '${deployment().name}-kv'
   params: {
     name: keyVaultName

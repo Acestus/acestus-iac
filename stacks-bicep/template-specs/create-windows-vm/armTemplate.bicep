@@ -18,7 +18,7 @@ param adminPassword string
 param OSVersion string = '2022-Datacenter'
 
 @description('Resource ID of the subnet.')
-param SubnetID string = '/subscriptions/<subscription-id>/resourceGroups/NetTools/providers/Microsoft.Network/virtualNetworks/vnet-nettools-usw2-001/subnets/default'
+param SubnetID string = '/subscriptions/<subscription-id>/resourceGroups/NetTools/providers/Microsoft.Network/virtualNetworks/vnet-nettools-uks-001/subnets/default'
 
 var location = resourceGroup().location
 var projectName = 'nettools'
@@ -27,11 +27,11 @@ var workloadName1 = substring(subscriptionName, 0, indexOf(subscriptionName, '-'
 var workloadName2 = substring(subscriptionName, 4, indexOf(subscriptionName, '-'))
 var workloadName = concat(workloadName1, workloadName2)
 var uniqueNumbers = substring(uniqueString(resourceGroup().id, deployment().name), 0, 3)
-var vmName = 'vm-${projectName}-${workloadName}-usw2-${uniqueNumbers}'
+var vmName = 'vm-${projectName}-${workloadName}-uks-${uniqueNumbers}'
 var VMSize = 'Standard_D2s_v3'
-var nicName = 'nic-${projectName}-${workloadName}-usw2-${uniqueNumbers}'
+var nicName = 'nic-${projectName}-${workloadName}-uks-${uniqueNumbers}'
 var shortComputerName = '${projectName}-${uniqueNumbers}'
-var osDiskName = 'disk-${projectName}-${workloadName}-usw2-${uniqueNumbers}'
+var osDiskName = 'disk-${projectName}-${workloadName}-uks-${uniqueNumbers}'
 
 resource nic 'Microsoft.Network/networkInterfaces@2020-06-01' = {
   name: nicName
@@ -88,7 +88,7 @@ resource VM 'Microsoft.Compute/virtualMachines@2020-06-01' = {
     diagnosticsProfile: {
       bootDiagnostics: {
         enabled: true
-        storageUri: 'https://stnettoolsusw2001.blob.core.windows.net/'
+        storageUri: 'https://stnettoolsuks001.blob.core.windows.net/'
       }
     }
   }

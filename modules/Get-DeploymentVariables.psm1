@@ -36,9 +36,10 @@ function Get-DeploymentVariables {
     if ($ParamValues.ContainsKey('CAFName')) {
         $CAFName = $ParamValues['CAFName']
     } elseif ($ParamValues.ContainsKey('projectName') -and $ParamValues.ContainsKey('environment') -and 
-              $ParamValues.ContainsKey('CAFLocation') -and $ParamValues.ContainsKey('instanceNumber')) {
-        # Build CAFName from separated params
-        $CAFName = "$($ParamValues['projectName'])-$($ParamValues['environment'])-$($ParamValues['CAFLocation'])-$($ParamValues['instanceNumber'])"
+              ($ParamValues.ContainsKey('CAFLocation') -or $ParamValues.ContainsKey('regionCode')) -and $ParamValues.ContainsKey('instanceNumber')) {
+        # Build CAFName from separated params (support both CAFLocation and regionCode)
+        $location = if ($ParamValues.ContainsKey('regionCode')) { $ParamValues['regionCode'] } else { $ParamValues['CAFLocation'] }
+        $CAFName = "$($ParamValues['projectName'])-$($ParamValues['environment'])-$location-$($ParamValues['instanceNumber'])"
     } elseif ($ParamContent -match "CAFName:\s*'([^']+)'") {
         $CAFNameTemplate = $matches[1]
         try {
@@ -55,7 +56,7 @@ function Get-DeploymentVariables {
             return
         }
     } else {
-        Write-Error "CAFName not found - need either CAFName param or separated params (projectName, environment, CAFLocation, instanceNumber) in $ParamFile"
+        Write-Error "CAFName not found - need either CAFName param or separated params (projectName, environment, regionCode/CAFLocation, instanceNumber) in $ParamFile"
         return
     }
     $ResourceGroupName = "rg-$CAFName"

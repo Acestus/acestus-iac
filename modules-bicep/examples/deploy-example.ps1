@@ -4,7 +4,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $false)]
-    [string]$ResourceGroupName = "rg-example-custom-modules-dev-usw2",
+    [string]$ResourceGroupName = "rg-example-custom-modules-dev-wus3",
     
     [Parameter(Mandatory = $false)]
     [string]$Location = "West US 2",
@@ -42,7 +42,7 @@ try {
 
     # Login to ACR (required for module access)
     Write-Host "🐳 Logging into ACR..." -ForegroundColor Cyan
-    az acr login --name acrskpmgtcrprdusw2001
+    az acr login --name acrskpmgtcrprdwus3001
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Failed to login to ACR. Check ACR access permissions."
     }

@@ -26,10 +26,10 @@ Publish your first module:
 Reference your custom module:
 
 ```bicep
-module storage 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/storage-account:v1.0.0' = {
+module storage 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/storage-account:v1.0.0' = {
   name: 'myStorage'
   params: {
-    storageAccountName: 'stmyappdevusw2001'
+    storageAccountName: 'stmyappdevwus3001'
     allowedIpRules: ['192.168.1.0/24']
     tags: {
       Environment: 'dev'
@@ -163,7 +163,7 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.18.1' = {
 
 ### After (Custom Module)
 ```bicep
-module storageAccount 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/storage-account:v1.0.0' = {
+module storageAccount 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/storage-account:v1.0.0' = {
   name: storageName
   params: {
     storageAccountName: storageName
@@ -190,7 +190,7 @@ module storageAccount 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/storage
 
 **"Cannot access ACR"**
 - Ensure you have `AcrPush` and `AcrPull` roles on the container registry
-- Run `az acr login --name acracemgtcrprdusw2001`
+- Run `az acr login --name acracemgtcrprdwus3001`
 
 **"Module not found"**
 - Check module name and version: `.\List-ModuleVersions.ps1 -ModuleName "storage-account"`

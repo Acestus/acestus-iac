@@ -25,10 +25,10 @@ Custom Bicep module for App Service Plans using AVM with Acestus defaults.
 ## Example
 
 ```bicep
-module appServicePlan 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/app-service-plan:v1.0.0' = {
+module appServicePlan 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/app-service-plan:v1.0.0' = {
   name: 'appServicePlan'
   params: {
-    name: 'asp-myapp-dev-usw2-001'
+    name: 'asp-myapp-dev-wus3-001'
     location: location
     tags: tags
     skuName: 'EP1'

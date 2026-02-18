@@ -3,7 +3,7 @@
 
 param(
     [Parameter(Mandatory = $false)]
-    [string]$ResourceGroupName = "rg-acestus-mgmt-usw2-002"
+    [string]$ResourceGroupName = "rg-acestus-mgmt-eus2-002"
 )
 
 # Set error handling

@@ -32,18 +32,18 @@ rectangle "«source»\nExternal Data Source" as source <<source>> {
 }
 
 ' ===== AKS Cluster =====
-rectangle "AKS Cluster (aks-timelogger-dev-usw2-001)" as aks <<aks>> {
+rectangle "AKS Cluster (aks-timelogger-dev-swc-001)" as aks <<aks>> {
     rectangle "api-traffic\n(HTTP API)" as apiTraffic
     rectangle "time-logger\n(CronJob)" as timeLogger
     rectangle "fabric-sync\n(Fabric API Client)" as fabricSync
 }
 
 ' ===== Azure Resources =====
-rectangle "sttimeloggerdevusw2001\n(Azure Blob Storage)\nLanding Zone - Raw Files" as storage <<azure>>
+rectangle "sttimeloggerdevswc001\n(Azure Blob Storage)\nLanding Zone - Raw Files" as storage <<azure>>
 
-rectangle "ai-timelogger-dev-usw2-001\n(Application Insights)\nMonitoring & Telemetry" as appInsights <<azure>>
+rectangle "ai-timelogger-dev-swc-001\n(Application Insights)\nMonitoring & Telemetry" as appInsights <<azure>>
 
-rectangle "umi-timelogger-dev-usw2-001\n(Managed Identity)\nPasswordless Auth" as umi <<azure>>
+rectangle "umi-timelogger-dev-swc-001\n(Managed Identity)\nPasswordless Auth" as umi <<azure>>
 
 ' ===== Fabric Workspace =====
 rectangle "Microsoft Fabric\nws-fabric-dev\n(Git Integrated)" as fabric <<fabric>> {
@@ -102,11 +102,11 @@ nbSlvGld -[dotted]-> gold
 legend right
 |= Component |= CAF Name |= Purpose |
 | External Source | - | Source system |
-| App Insights | ai-timelogger-dev-usw2-001 | Monitoring & telemetry |
-| Managed Identity | umi-timelogger-dev-usw2-001 | Passwordless authentication |
-| AKS Cluster | aks-timelogger-dev-usw2-001 | Container orchestration |
+| App Insights | ai-timelogger-dev-swc-001 | Monitoring & telemetry |
+| Managed Identity | umi-timelogger-dev-swc-001 | Passwordless authentication |
+| AKS Cluster | aks-timelogger-dev-swc-001 | Container orchestration |
 | fabric-sync | - | Fabric API client |
-| Storage Account | sttimeloggerdevusw2001 | Landing zone |
+| Storage Account | sttimeloggerdevswc001 | Landing zone |
 | Workspace | ws-fabric-dev | Fabric workspace (Git integrated) |
 | Pipeline | pl_ing_data_brz | Ingestion pipeline |
 | Eventstream | ingest_event_stream | Blob storage events |

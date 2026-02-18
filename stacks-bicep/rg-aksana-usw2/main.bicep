@@ -59,7 +59,7 @@ var keyVaultName = 'kv-${projectName}-${environment}-${CAFLocation}'
 
 // AKS Cluster using Acestus AKS AZD Pattern Module
 // This pattern creates: AKS cluster, Container Registry, Key Vault, and configures monitoring
-module aksStack 'br:acracemgtcrdevusw2001.azurecr.io/bicep/modules/aks-azd-pattern:v1.0.0' = {
+module aksStack 'br:acracemgtcrdeveus2001.azurecr.io/bicep/modules/aks-azd-pattern:v1.0.0' = {
   name: '${deployment().name}-aks'
   params: {
     name: aksClusterName

@@ -50,7 +50,7 @@ This is a custom Bicep module for Azure ALZ Empty that implements Acestus securi
 module empty 'br/public:avm/ptn/alz/empty:0.3.6' = {
   name: 'myALZEmpty'
   params: {
-    name: 'alz-empty-dev-usw2-001'
+    name: 'alz-empty-dev-wus3-001'
     location: location
     tags: tags
     appServicePlanId: appServicePlan.id

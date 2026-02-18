@@ -48,7 +48,7 @@ Azure Verified Modules (AVM) provides the single definition of what a good IaC m
 
 ```hcl
 module "storage_account" {
-  source  = "oci://acracemgtcrprdusw2001.azurecr.io/terraform/modules/storage-account"
+  source  = "oci://acracemgtcrprdsea001.azurecr.io/terraform/modules/storage-account"
   version = "1.0.0"
 
   name                = "stexample001"
@@ -120,7 +120,7 @@ All modules follow Acestus security defaults:
 
 - Terraform >= 1.5.0
 - Azure CLI installed and authenticated
-- Access to the Acestus ACR (acracemgtcrprdusw2001 or acracemgtcrdevusw2001)
+- Access to the Acestus ACR (acracemgtcrprdsea001 or acracemgtcrdevneu001)
 - AcrPush permissions on the container registry
 
 ## Contributing

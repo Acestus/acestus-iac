@@ -1,6 +1,6 @@
 # AKS Stack (Terraform)
 
-Terraform stack for deploying an AKS cluster with Container Registry, Key Vault, and monitoring - the Terraform equivalent of `stacks-bicep/rg-aksana-usw2`.
+Terraform stack for deploying an AKS cluster with Container Registry, Key Vault, and monitoring - the Terraform equivalent of `stacks-bicep/rg-aksana-sea`.
 
 ## Overview
 
@@ -21,10 +21,10 @@ This stack uses the `aks-azd-pattern` wrapper module to deploy:
 
 ```powershell
 # Login to ACR for module access
-az acr login --name acrskpmgtcrdevusw2001
+az acr login --name acrskpmgtcrdevsea001
 
 # Initialize
-cd stacks-terraform/rg-newaks-usw2
+cd stacks-terraform/rg-newaks-sea
 terraform init
 
 # Deploy dev environment
@@ -35,7 +35,7 @@ terraform apply -var-file=environments/dev/terraform.tfvars
 ## Directory Structure
 
 ```
-rg-newaks-usw2/
+rg-newaks-sea/
 ├── main.tf              # Main configuration using aks-azd-pattern module
 ├── variables.tf         # Input variables
 ├── outputs.tf           # Stack outputs
@@ -77,7 +77,7 @@ Edit the environment-specific `terraform.tfvars` files:
 # environments/dev/terraform.tfvars
 project_name    = "aksana"
 environment     = "dev"
-caf_location    = "usw2"
+caf_location    = "sea"
 instance_number = "001"
 
 kubernetes_version = "1.30"
@@ -122,16 +122,16 @@ After deployment, these outputs are available:
 ### Get AKS Credentials
 
 ```powershell
-az aks get-credentials --resource-group rg-newaks-dev-usw2-001 --name aks-newaks-dev-usw2-001
+az aks get-credentials --resource-group rg-newaks-dev-sea-001 --name aks-newaks-dev-sea-001
 kubectl get nodes
 ```
 
 ### Push to ACR
 
 ```powershell
-az acr login --name acrnewaksdevusw2001
-docker tag myapp:latest acrnewaksdevusw2001.azurecr.io/myapp:latest
-docker push acrnewaksdevusw2001.azurecr.io/myapp:latest
+az acr login --name acrnewaksdevsea001
+docker tag myapp:latest acrnewaksdevsea001.azurecr.io/myapp:latest
+docker push acrnewaksdevsea001.azurecr.io/myapp:latest
 ```
 
 ## Related

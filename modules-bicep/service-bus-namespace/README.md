@@ -28,10 +28,10 @@ Custom Bicep module for Service Bus namespaces using AVM with Acestus defaults.
 ## Example
 
 ```bicep
-module serviceBus 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/service-bus-namespace:v1.0.0' = {
+module serviceBus 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/service-bus-namespace:v1.0.0' = {
   name: 'serviceBus'
   params: {
-    name: 'sb-myapp-dev-usw2-001'
+    name: 'sb-myapp-dev-wus3-001'
     location: location
     tags: tags
     skuObject: {

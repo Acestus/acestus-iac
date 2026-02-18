@@ -40,7 +40,7 @@
     },
     "CAFLocation": {
       "type": "string",
-      "defaultValue": "usw2",
+      "defaultValue": "eus2",
       "metadata": {
         "description": "The CAF location suffix."
       }

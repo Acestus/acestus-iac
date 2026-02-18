@@ -32,14 +32,14 @@ jobs:
     #   azure_tenant_id: ${{ vars.AZURE_TENANT_ID }}
     #   azure_client_id: ${{ vars.AZURE_CLIENT_ID_DEV }}
     #   azure_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-    #   resource_group_name: rg-timelogger-dev-usw2-001
-    #   stack_name: stack-timelogger-dev-usw2-001
+    #   resource_group_name: rg-timelogger-dev-ncus-001
+    #   stack_name: stack-timelogger-dev-ncus-001
     #   template_file: infrastructure/main.bicep
     #   params_file: infrastructure/main.dev.bicepparam
     #   acr_name: <your-acr-name>
-    #   aks_cluster_name: aks-timelogger-dev-usw2-001
+    #   aks_cluster_name: aks-timelogger-dev-ncus-001
     #   k8s_namespace: default
-    #   storage_account_name: sttimeloggerdevusw2001
+    #   storage_account_name: sttimeloggerdevncus001
     #   applications_json: |
     #     [
     #       {

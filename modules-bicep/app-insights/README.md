@@ -28,10 +28,10 @@ Custom Bicep module for Application Insights using AVM with Acestus defaults.
 ## Example
 
 ```bicep
-module appInsights 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/app-insights:v1.0.0' = {
+module appInsights 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/app-insights:v1.0.0' = {
   name: 'appInsights'
   params: {
-    name: 'ai-myapp-dev-usw2-001'
+    name: 'ai-myapp-dev-wus3-001'
     location: location
     tags: tags
     workspaceResourceId: logAnalytics.outputs.resourceId

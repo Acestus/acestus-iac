@@ -7,7 +7,7 @@ variable "ResourceProjAppSvc" {
 }
 
 variable "ResourceLocation" {
-  default = "usw2"
+  default = "ase"
 }
 
 variable "ResourceInstance" {

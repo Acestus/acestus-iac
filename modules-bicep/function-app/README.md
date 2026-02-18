@@ -47,10 +47,10 @@ This is a custom Bicep module for Azure Function Apps that implements Acestus se
 
 ### Basic Function App (PowerShell)
 ```bicep
-module functionApp 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/function-app:v1.0.0' = {
+module functionApp 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/function-app:v1.0.0' = {
   name: 'myFunctionApp'
   params: {
-    name: 'func-myapp-dev-usw2-001'
+    name: 'func-myapp-dev-wus3-001'
     location: location
     tags: tags
     appServicePlanId: appServicePlan.id
@@ -66,10 +66,10 @@ module functionApp 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/function-a
 
 ### Python Function App with Additional Settings
 ```bicep
-module functionApp 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/function-app:v1.0.0' = {
+module functionApp 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/function-app:v1.0.0' = {
   name: 'myPythonFunctionApp'
   params: {
-    name: 'func-myapp-dev-usw2-002'
+    name: 'func-myapp-dev-wus3-002'
     location: location
     tags: tags
     appServicePlanId: appServicePlan.id

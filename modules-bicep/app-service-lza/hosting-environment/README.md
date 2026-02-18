@@ -50,7 +50,7 @@ This is a custom Bicep module for Azure App Service LZA Hosting Environment that
 module hostingEnvironment 'br/public:avm/ptn/app-service-lza/hosting-environment:0.1.1' = {
   name: 'myHostingEnvironment'
   params: {
-    name: 'hosting-env-dev-usw2-001'
+    name: 'hosting-env-dev-wus3-001'
     location: location
     tags: tags
     appServicePlanId: appServicePlan.id

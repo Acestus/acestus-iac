@@ -50,7 +50,7 @@ This is a custom Bicep module for Azure AI Foundry that implements Acestus secur
 module aiFoundry 'br/public:avm/ptn/ai-ml/ai-foundry:0.6.0' = {
   name: 'myAIFoundry'
   params: {
-    name: 'ai-foundry-dev-usw2-001'
+    name: 'ai-foundry-dev-wus3-001'
     location: location
     tags: tags
     appServicePlanId: appServicePlan.id

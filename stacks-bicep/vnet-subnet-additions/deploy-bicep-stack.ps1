@@ -2,9 +2,9 @@
 
 param(
     [string]$SubscriptionId = "7c486f82-99db-43fe-9858-78ae54a74f3b",
-    [string]$ResourceGroupName = "rg-transit-conn-usw2",
+    [string]$ResourceGroupName = "rg-transit-conn-weu",
     [string]$ParameterFile = "main.bicepparam",
-    [string]$Location = "West US 2"
+    [string]$Location = "West Europe"
 )
 
 Write-Host "=== Deploying VNet Subnet Additions ===" -ForegroundColor Cyan

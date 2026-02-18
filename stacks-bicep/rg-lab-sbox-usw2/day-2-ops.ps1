@@ -1,5 +1,5 @@
 $ProjectName = ""
-$CAFLocation = "usw2"
+$CAFLocation = "eus2"
 $Instance = ""
 $Owner = ""
 $Subscription = ""

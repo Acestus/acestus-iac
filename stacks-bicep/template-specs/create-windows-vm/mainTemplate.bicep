@@ -20,18 +20,18 @@ param OSVersion string = '2025-datacenter-azure-edition-smalldisk'
 
 @description('Resource ID of the subnet.')
 @allowed([
-  '/subscriptions/<subscription-id>/resourceGroups/NetTools/providers/Microsoft.Network/virtualNetworks/vnet-nettools-usw2-001/subnets/default'
+  '/subscriptions/<subscription-id>/resourceGroups/NetTools/providers/Microsoft.Network/virtualNetworks/vnet-nettools-ase-001/subnets/default'
 ])
-param SubnetID string = '/subscriptions/<subscription-id>/resourceGroups/NetTools/providers/Microsoft.Network/virtualNetworks/vnet-nettools-usw2-001/subnets/default'
+param SubnetID string = '/subscriptions/<subscription-id>/resourceGroups/NetTools/providers/Microsoft.Network/virtualNetworks/vnet-nettools-ase-001/subnets/default'
 
 var location = resourceGroup().location
-var cafName = '${projectName}-usw2-${instanceNumber}'
+var cafName = '${projectName}-ase-${instanceNumber}'
 var vmName = 'vm-${cafName}'
 var VMSize = 'Standard_B2s'
 var nicName = 'nic-${cafName}'
 var shortComputerName = 'vm-${projectName}-${instanceNumber}'
 var osDiskName = 'disk-${cafName}'
-var storageAccountName = 'stnettoolsusw2001'
+var storageAccountName = 'stnettoolsase001'
 var storageUri = 'https://${storageAccountName}.blob.${environment().suffixes.storage}'
 
 resource nic 'Microsoft.Network/networkInterfaces@2020-06-01' = {

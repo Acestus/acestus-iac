@@ -30,7 +30,7 @@ Azure Monitor Alert → Action Group → Function App → Teams Webhook
 ## Files Structure
 
 ```
-rg-acestus-mgmt-usw2-002/
+rg-acestus-mgmt-eus2-002/
 ├── Alert_Transformer/
 │   ├── function.json          # Function binding configuration
 │   └── run.ps1                # Function PowerShell code

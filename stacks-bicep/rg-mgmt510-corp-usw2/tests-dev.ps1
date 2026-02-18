@@ -1,7 +1,7 @@
 $Subscription = "Sbox-LearningLab"
-$StackName = "stack-mgmt510-corp-usw2-dev"
-$RGName = "rg-mgmt510-corp-usw2-dev"
-$storageAccountName = "stmgmt510corpusw2dev"
+$StackName = "stack-mgmt510-corp-eus2-dev"
+$RGName = "rg-mgmt510-corp-eus2-dev"
+$storageAccountName = "stmgmt510corpeus2dev"
 
 Set-AzContext -Subscription $Subscription
 Get-AzSubscription -SubscriptionName $Subscription

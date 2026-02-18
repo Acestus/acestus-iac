@@ -41,7 +41,7 @@ var containerAppsEnvironmentName = 'cae-${projectName}-${environment}-${CAFLocat
 var containerAppName = 'ca-aspire-${projectName}-${environment}-${CAFLocation}-${instanceNumber}'
 var userManagedIdentityName = 'umi-${projectName}-${environment}-${CAFLocation}-${instanceNumber}'
 
-module userManagedIdentity 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/user-managed-identity:v1.1.0' = {
+module userManagedIdentity 'br:acracemgtcrprdeus2001.azurecr.io/bicep/modules/user-managed-identity:v1.1.0' = {
   params: {
     name: userManagedIdentityName
     location: location

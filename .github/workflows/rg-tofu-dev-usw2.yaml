@@ -1,4 +1,4 @@
-name: 'rg-tofu-dev-usw2'
+name: 'rg-tofu-dev-ncus'
 
 on:
   # push:
@@ -33,7 +33,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: "./rg-tofu-dev-usw2"
+        working-directory: "./rg-tofu-dev-ncus"
 
     steps:
     - name: Checkout
@@ -61,8 +61,8 @@ jobs:
       with:
         name: terraform-plan-${{ github.ref_name }}
         path: |
-          rg-tofu-dev-usw2/plan_output.txt
-          rg-tofu-dev-usw2/tfplan
+          rg-tofu-dev-ncus/plan_output.txt
+          rg-tofu-dev-ncus/tfplan
         retention-days: 30
 
     - name: Plan Summary
@@ -108,7 +108,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: "./rg-tofu-dev-usw2"
+        working-directory: "./rg-tofu-dev-ncus"
 
     steps:
     - name: Checkout
@@ -137,7 +137,7 @@ jobs:
       with:
         script: |
           const fs = require('fs');
-          const planOutput = fs.readFileSync('rg-tofu-dev-usw2/plan_output.txt', 'utf8');
+          const planOutput = fs.readFileSync('rg-tofu-dev-ncus/plan_output.txt', 'utf8');
           const output = `## 📋 OpenTofu Plan Results
           
           **Status:** ${{ steps.plan.outputs.exit_code == '0' && '✅ Success' || '❌ Failed' }}
@@ -205,7 +205,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: "./rg-tofu-dev-usw2"
+        working-directory: "./rg-tofu-dev-ncus"
 
     steps:
     - name: Checkout
@@ -266,7 +266,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: "./rg-tofu-dev-usw2"
+        working-directory: "./rg-tofu-dev-ncus"
 
     steps:
     - name: Checkout

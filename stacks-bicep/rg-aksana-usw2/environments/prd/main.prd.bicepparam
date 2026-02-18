@@ -2,7 +2,7 @@ using '../../main.bicep'
 
 param projectName = 'aksana'
 param environment = 'prd'
-param CAFLocation = 'usw2'
+param CAFLocation = 'eus2'
 param instanceNumber = '001'
 
 // Production Kubernetes configuration

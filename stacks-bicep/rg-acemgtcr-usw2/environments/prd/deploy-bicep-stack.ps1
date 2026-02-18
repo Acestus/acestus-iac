@@ -3,13 +3,13 @@
 
 param(
     [Parameter(Mandatory = $false)]
-    [string]$StackName = "stack-acemgtcr-prd-usw2-001",
+    [string]$StackName = "stack-acemgtcr-prd-eus2-001",
     
     [Parameter(Mandatory = $false)]
     [string]$SubscriptionId = "e35cd2cf-a9de-4d2b-9134-8b341286cb5d",
     
     [Parameter(Mandatory = $false)]
-    [string]$ResourceGroupName = "rg-acemgtcr-prd-usw2-001",
+    [string]$ResourceGroupName = "rg-acemgtcr-prd-eus2-001",
     
     [Parameter(Mandatory = $false)]
     [string]$Location = "West US 2"

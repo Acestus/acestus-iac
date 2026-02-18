@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "main" {
 
 module "aks_stack" {
   # Use ACR module reference after publishing
-  # source = "oci://acrskpmgtcrdevusw2001.azurecr.io/terraform/modules/aks-azd-pattern"
+  # source = "oci://acrskpmgtcrdevsea001.azurecr.io/terraform/modules/aks-azd-pattern"
   # version = "1.0.0"
   
   # For local development, use relative path
@@ -72,6 +72,6 @@ locals {
     Environment = var.environment
     Project     = var.project_name
     ManagedBy   = "terraform"
-    Stack       = "rg-newaks-usw2"
+    Stack       = "rg-newaks-sea"
   })
 }

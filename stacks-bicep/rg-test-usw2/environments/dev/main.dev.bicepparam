@@ -2,7 +2,7 @@ using '../../main.bicep'
 
 param projectName = 'test'
 param environment = 'dev'
-param region = 'usw2'
+param region = 'eus2'
 param instanceNumber = '001'
 
 param tags = {

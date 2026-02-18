@@ -3,7 +3,7 @@
 
 param(
     [string]$SubscriptionId = $env:AZURE_SUBSCRIPTION_ID,
-    [string]$ResourceGroupName = "rg-aspire-dev-usw2-001",
+    [string]$ResourceGroupName = "rg-aspire-dev-eus2-001",
     [string]$Location = "West US 2",
     [switch]$WhatIf,
     [switch]$Force

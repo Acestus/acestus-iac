@@ -30,20 +30,20 @@
 
 ```powershell
 # Deploy to dev environment
-.\scripts\deploy-bicep.ps1 -Stack rg-aceedm-usw2 -Environment dev
+.\scripts\deploy-bicep.ps1 -Stack rg-aceedm-eus2 -Environment dev
 
 # Deploy to prd environment
-.\scripts\deploy-bicep.ps1 -Stack rg-aceedm-usw2 -Environment prd
+.\scripts\deploy-bicep.ps1 -Stack rg-aceedm-eus2 -Environment prd
 ```
 
 ### Create a Resource Group
 
 ```powershell
 # Basic usage (defaults to westus2)
-.\scripts\New-ResourceGroup.ps1 -Name "rg-myproject-dev-usw2-001"
+.\scripts\New-ResourceGroup.ps1 -Name "rg-myproject-dev-eus2-001"
 
 # With location and subscription
-.\scripts\New-ResourceGroup.ps1 -Name "rg-myproject-dev-usw2-001" -Location "eastus" -Subscription "Sbox-710-Analytics"
+.\scripts\New-ResourceGroup.ps1 -Name "rg-myproject-dev-eus2-001" -Location "eastus" -Subscription "Sbox-710-Analytics"
 ```
 
 ## Style Guide
@@ -61,7 +61,7 @@
 [Lab Video](<internal-training-video-url>)
 
 1. Open the Web Editor by pressing '.'
-1. Create a Branch with [Cloud Adoption Frameworking naming convention](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming) like "lab-sbox-usw2"
+1. Create a Branch with [Cloud Adoption Frameworking naming convention](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming) like "lab-sbox-eus2"
 1. Copy .github/workflows/$ProjectName-$Environment-$CAFLocation.yaml and rename it with Ctrl-Shift-L
 1. Copy the folder, $ProjectName-$Environment-$CAFLocation, and rename it.
 1. Update the values in the yaml file.
@@ -73,14 +73,14 @@
 
 [Deployment Video](<internal-training-video-url>)
 
-1. Create a new branch following the Cloud Adoption Framework naming convention. For example, "mgmt710-corp-usw2".
+1. Create a new branch following the Cloud Adoption Framework naming convention. For example, "mgmt710-corp-eus2".
 1. Copy and customize these files:
-    - directory, mgmt710-corp-usw2
-        - 1 bicep file, mgmt710-corp-usw2.bicep
-        - 2 bicep parameter files, mgmt710-corp-usw2-prd.parameters.json and mgmt710-corp-usw2-dev.parameters.json
+    - directory, mgmt710-corp-eus2
+        - 1 bicep file, mgmt710-corp-eus2.bicep
+        - 2 bicep parameter files, mgmt710-corp-eus2-prd.parameters.json and mgmt710-corp-eus2-dev.parameters.json
         - 2 powershell files, tests-prd.ps1 and tests-dev.ps1
-    - workflow yaml file, mgmt710-corp-usw2-prd.yaml
-    - workflow yaml file, mgmt710-corp-usw2-dev.yaml
+    - workflow yaml file, mgmt710-corp-eus2-prd.yaml
+    - workflow yaml file, mgmt710-corp-eus2-dev.yaml
 1. Deploy to your sandbox subscription in your branch.
 1. Run ./tests-dev.ps1 to validate the deployment.
 1. Create a pull request to the main branch. The workflow will run and deploy to the production subscription.

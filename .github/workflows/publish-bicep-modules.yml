@@ -17,7 +17,7 @@ on:
         required: false
 
 env:
-  ACR_NAME: <your-acr-name> # e.g., acrmodulesprdusw2001
+  ACR_NAME: <your-acr-name> # e.g., acrmodulesprdscus001
   AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
 jobs:

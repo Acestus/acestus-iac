@@ -16,12 +16,12 @@ This module deploys:
 
 ```hcl
 module "aks_stack" {
-  source  = "oci://acracemgtcrdevusw2001.azurecr.io/terraform/modules/aks-azd-pattern"
+  source  = "oci://acracemgtcrdevkor001.azurecr.io/terraform/modules/aks-azd-pattern"
   version = "1.0.0"
 
-  aks_name                = "aks-myapp-dev-usw2-001"
-  container_registry_name = "acrmyappdevusw2001"
-  key_vault_name          = "kv-myapp-dev-usw2"
+  aks_name                = "aks-myapp-dev-kor-001"
+  container_registry_name = "acrmyappdevkor001"
+  key_vault_name          = "kv-myapp-dev-kor"
   resource_group_name     = azurerm_resource_group.main.name
   location                = azurerm_resource_group.main.location
 
@@ -38,12 +38,12 @@ module "aks_stack" {
 
 ```hcl
 module "aks_stack" {
-  source  = "oci://acracemgtcrprdusw2001.azurecr.io/terraform/modules/aks-azd-pattern"
+  source  = "oci://acracemgtcrprdkor001.azurecr.io/terraform/modules/aks-azd-pattern"
   version = "1.0.0"
 
-  aks_name                = "aks-myapp-prd-usw2-001"
-  container_registry_name = "acrmyappprdusw2001"
-  key_vault_name          = "kv-myapp-prd-usw2"
+  aks_name                = "aks-myapp-prd-kor-001"
+  container_registry_name = "acrmyappprdkor001"
+  key_vault_name          = "kv-myapp-prd-kor"
   resource_group_name     = azurerm_resource_group.main.name
   location                = azurerm_resource_group.main.location
 

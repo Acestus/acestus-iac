@@ -32,10 +32,10 @@ graph TB
 
 | Resource Type | Name Pattern | Purpose |
 |---------------|--------------|---------|
-| Log Analytics Workspace | `law-aspire-dev-usw2-001` | Centralized logging and monitoring |
-| Container Apps Environment | `cae-aspire-dev-usw2-001` | Hosting platform for containers |
-| Container App | `ca-aspire-aspire-dev-usw2-001` | .NET Aspire Dashboard application |
-| User Managed Identity | `umi-aspire-dev-usw2-001` | Secure identity for resource access |
+| Log Analytics Workspace | `law-aspire-dev-eus2-001` | Centralized logging and monitoring |
+| Container Apps Environment | `cae-aspire-dev-eus2-001` | Hosting platform for containers |
+| Container App | `ca-aspire-aspire-dev-eus2-001` | .NET Aspire Dashboard application |
+| User Managed Identity | `umi-aspire-dev-eus2-001` | Secure identity for resource access |
 
 ## Configuration
 
@@ -65,7 +65,7 @@ graph TB
 
 ```powershell
 # Navigate to the deployment directory
-cd bicep/rg-aspire-dev-usw2-001
+cd bicep/rg-aspire-dev-eus2-001
 
 # Perform what-if analysis
 .\deploy-bicep-stack.ps1 -WhatIf
@@ -139,13 +139,13 @@ The deployment includes comprehensive monitoring through:
 
 ```powershell
 # Check deployment status
-Get-AzResourceGroupDeployment -ResourceGroupName "rg-aspire-dev-usw2-001"
+Get-AzResourceGroupDeployment -ResourceGroupName "rg-aspire-dev-eus2-001"
 
 # View container app logs
-az containerapp logs show --name "ca-aspire-aspire-dev-usw2-001" --resource-group "rg-aspire-dev-usw2-001"
+az containerapp logs show --name "ca-aspire-aspire-dev-eus2-001" --resource-group "rg-aspire-dev-eus2-001"
 
 # Scale the container app
-az containerapp update --name "ca-aspire-aspire-dev-usw2-001" --resource-group "rg-aspire-dev-usw2-001" --min-replicas 2 --max-replicas 5
+az containerapp update --name "ca-aspire-aspire-dev-eus2-001" --resource-group "rg-aspire-dev-eus2-001" --min-replicas 2 --max-replicas 5
 ```
 
 ## Cost Considerations

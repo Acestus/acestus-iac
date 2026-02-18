@@ -4,8 +4,8 @@ using './main.bicep'
 // Parameters
 // ==================================
 
-param location = 'West US 2'
-param vnetName = 'vnet-transit-conn-usw2-001'
+param location = 'West Europe'
+param vnetName = 'vnet-transit-conn-weu-001'
 param tags = {
   Purpose: 'Subnet-Addition'
   ManagedBy: 'Bicep'

@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       project:
-        description: "Project folder to deploy (e.g., rg-mgmt100-corp-usw2)"
+        description: "Project folder to deploy (e.g., rg-mgmt100-corp-weu)"
         required: true
         type: string
       environment:
@@ -67,8 +67,8 @@ jobs:
         id: vars
         run: |
           # Handle different naming conventions
-          # Pattern 1: rg-mgmt100-corp-usw2 -> mgmt100-corp-usw2.bicep, mgmt100-corp-usw2-dev.bicepparam
-          # Pattern 2: rg-acemgt-dev-usw2-001 -> main.bicep, main.bicepparam (env already in folder name)
+          # Pattern 1: rg-mgmt100-corp-weu -> mgmt100-corp-weu.bicep, mgmt100-corp-weu-dev.bicepparam
+          # Pattern 2: rg-acemgt-dev-cus-001 -> main.bicep, main.bicepparam (env already in folder name)
 
           PROJECT="${{ env.PROJECT }}"
           ENV="${{ env.ENV }}"

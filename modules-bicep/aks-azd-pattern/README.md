@@ -15,13 +15,13 @@ This module wraps the AVM AKS pattern to deploy a complete AKS environment inclu
 ### Basic Example
 
 ```bicep
-module aksStack 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/aks-azd-pattern:v1.0.0' = {
+module aksStack 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/aks-azd-pattern:v1.0.0' = {
   name: 'aks-deployment'
   params: {
-    name: 'aks-myapp-dev-usw2-001'
+    name: 'aks-myapp-dev-wus3-001'
     location: 'westus2'
-    containerRegistryName: 'acrmyappdevusw2001'
-    keyVaultName: 'kv-myapp-dev-usw2'
+    containerRegistryName: 'acrmyappdevwus3001'
+    keyVaultName: 'kv-myapp-dev-wus3'
     monitoringWorkspaceResourceId: '/subscriptions/.../resourceGroups/.../providers/Microsoft.OperationalInsights/workspaces/...'
     principalId: '00000000-0000-0000-0000-000000000000'
     tags: {
@@ -35,13 +35,13 @@ module aksStack 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/aks-azd-patte
 ### Production Example with Custom Pools
 
 ```bicep
-module aksStack 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/aks-azd-pattern:v1.0.0' = {
+module aksStack 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/aks-azd-pattern:v1.0.0' = {
   name: 'aks-deployment'
   params: {
-    name: 'aks-myapp-prd-usw2-001'
+    name: 'aks-myapp-prd-wus3-001'
     location: 'westus2'
-    containerRegistryName: 'acrmyappprdusw2001'
-    keyVaultName: 'kv-myapp-prd-usw2'
+    containerRegistryName: 'acrmyappprdwus3001'
+    keyVaultName: 'kv-myapp-prd-wus3'
     monitoringWorkspaceResourceId: logAnalyticsWorkspace.id
     principalId: servicePrincipal.objectId
     

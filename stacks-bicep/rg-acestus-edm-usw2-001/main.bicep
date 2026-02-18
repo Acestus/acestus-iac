@@ -35,7 +35,7 @@ var functionAppName = 'func-alert-${environmentSuffix}-${locationSuffix}-${insta
 var emailActionGroupName = 'ag-email-${environmentSuffix}-${locationSuffix}-${instanceSuffix}'
 var teamsActionGroupName = 'ag-teams-${environmentSuffix}-${locationSuffix}-${instanceSuffix}'
 
-module appServicePlan 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/app-service-plan:v1.1.0' = {
+module appServicePlan 'br:acracemgtcrprdeus2001.azurecr.io/bicep/modules/app-service-plan:v1.1.0' = {
   name: '${deployment().name}-asp'
   params: {
     name: appServicePlanName
@@ -60,7 +60,7 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.31.0' = {
   }
 }
 
-module applicationInsights 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/app-insights:v1.1.0' = {
+module applicationInsights 'br:acracemgtcrprdeus2001.azurecr.io/bicep/modules/app-insights:v1.1.0' = {
   name: '${deployment().name}-ai'
   params: {
     name: applicationInsightsName

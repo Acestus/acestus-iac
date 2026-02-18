@@ -1,7 +1,7 @@
 $Subscription = "Onln-710-Analytics"
-$StackName = "stack-mgmt710-onln-usw2-prd"
-$RGName = "rg-mgmt710-onln-usw2-prd"
-$storageAccountName = "stmgmt710onlnusw2prd"
+$StackName = "stack-mgmt710-onln-eus2-prd"
+$RGName = "rg-mgmt710-onln-eus2-prd"
+$storageAccountName = "stmgmt710onlneus2prd"
 
 
 Set-AzContext -Subscription $Subscription

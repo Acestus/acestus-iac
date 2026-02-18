@@ -33,7 +33,7 @@
         },
         "SubnetID": {
             "type": "string",
-            "defaultValue": "/subscriptions/<subscription-id>/resourceGroups/NetTools/providers/Microsoft.Network/virtualNetworks/vnet-nettools-usw2-001/subnets/default",
+            "defaultValue": "/subscriptions/<subscription-id>/resourceGroups/NetTools/providers/Microsoft.Network/virtualNetworks/vnet-nettools-ase-001/subnets/default",
             "metadata": {
                 "description": "Resource ID of the subnet."
             }
@@ -47,11 +47,11 @@
         "workloadName2": "[substring(variables('subscriptionName'), 4, indexOf(variables('subscriptionName'), '-'))]",
         "workloadName": "[concat(variables('workloadName1'), variables('workloadName2'))]",
         "uniqueNumbers": "[substring(uniqueString(resourceGroup().id, deployment().name), 0, 3)]",
-        "vmName": "[concat('vm-', variables('projectName'), '-', variables('workloadName'), '-usw2-', variables('uniqueNumbers'))]",
+        "vmName": "[concat('vm-', variables('projectName'), '-', variables('workloadName'), '-ase-', variables('uniqueNumbers'))]",
         "VMSize": "Standard_D2s_v3",
-        "nicName": "[concat('nic-', variables('projectName'), '-', variables('workloadName'), '-usw2-', variables('uniqueNumbers'))]",
+        "nicName": "[concat('nic-', variables('projectName'), '-', variables('workloadName'), '-ase-', variables('uniqueNumbers'))]",
         "shortComputerName": "[concat(variables('projectName'), '-', variables('uniqueNumbers'))]",
-        "osDiskName": "[concat('disk-', variables('projectName'), '-', variables('workloadName'), '-usw2-', variables('uniqueNumbers'))]"
+        "osDiskName": "[concat('disk-', variables('projectName'), '-', variables('workloadName'), '-ase-', variables('uniqueNumbers'))]"
     },
     "resources": [
         {
@@ -115,7 +115,7 @@
                 "diagnosticsProfile": {
                     "bootDiagnostics": {
                         "enabled": true,
-                        "storageUri": "https://stnettoolsusw2001.blob.core.windows.net/"
+                        "storageUri": "https://stnettoolsase001.blob.core.windows.net/"
                     }
                 }
             }

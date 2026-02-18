@@ -2,9 +2,9 @@ terraform {
   required_version = ">= 1.5.7"
   backend "azurerm" {
     resource_group_name  = "iac"
-    storage_account_name = "stprdiacusw2001"
+    storage_account_name = "stprdiacase001"
     container_name       = "dev"
-    key                  = "tfs-dev-test-usw2-008"
+    key                  = "tfs-dev-test-ase-008"
   }
 }
 

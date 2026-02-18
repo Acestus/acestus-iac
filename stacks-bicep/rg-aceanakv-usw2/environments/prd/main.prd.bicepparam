@@ -2,7 +2,7 @@ using '../../main.bicep'
 
 param projectName = 'aceanakv'
 param environment = 'prd'
-param CAFLocation = 'usw2'
+param CAFLocation = 'eus2'
 param instanceNumber = '002'
 
 param tags = {

@@ -41,10 +41,10 @@ This is a custom Bicep module for Azure Virtual Networks that implements Acestus
 
 ### Basic Virtual Network
 ```bicep
-module vnet 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/virtual-network:v1.0.0' = {
+module vnet 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/virtual-network:v1.0.0' = {
   name: 'myVnet'
   params: {
-    name: 'vnet-myapp-dev-usw2-001'
+    name: 'vnet-myapp-dev-wus3-001'
     addressPrefixes: ['10.0.0.0/16']
   }
 }
@@ -52,10 +52,10 @@ module vnet 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/virtual-network:v
 
 ### Virtual Network with Subnets
 ```bicep
-module vnet 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/virtual-network:v1.0.0' = {
+module vnet 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/virtual-network:v1.0.0' = {
   name: 'myVnetWithSubnets'
   params: {
-    name: 'vnet-myapp-prd-usw2-001'
+    name: 'vnet-myapp-prd-wus3-001'
     addressPrefixes: ['10.0.0.0/16']
     subnets: [
       {
@@ -84,10 +84,10 @@ module vnet 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/virtual-network:v
 
 ### Virtual Network with DDoS Protection
 ```bicep
-module vnet 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/virtual-network:v1.0.0' = {
+module vnet 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/virtual-network:v1.0.0' = {
   name: 'mySecureVnet'
   params: {
-    name: 'vnet-secure-prd-usw2-001'
+    name: 'vnet-secure-prd-wus3-001'
     addressPrefixes: ['10.1.0.0/16']
     enableDdosProtection: true
     ddosProtectionPlanResourceId: ddosPlan.outputs.resourceId
@@ -99,10 +99,10 @@ module vnet 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/virtual-network:v
 
 ### Virtual Network with Peering
 ```bicep
-module vnet 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/virtual-network:v1.0.0' = {
+module vnet 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/virtual-network:v1.0.0' = {
   name: 'myPeeredVnet'
   params: {
-    name: 'vnet-spoke-prd-usw2-001'
+    name: 'vnet-spoke-prd-wus3-001'
     addressPrefixes: ['10.2.0.0/16']
     peerings: [
       {

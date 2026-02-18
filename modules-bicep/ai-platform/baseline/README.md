@@ -50,7 +50,7 @@ This is a custom Bicep module for Azure AI Platform Baseline that implements Ace
 module baseline 'br/public:avm/ptn/ai-platform/baseline:0.8.0' = {
   name: 'myBaseline'
   params: {
-    name: 'baseline-dev-usw2-001'
+    name: 'baseline-dev-wus3-001'
     location: location
     tags: tags
     appServicePlanId: appServicePlan.id

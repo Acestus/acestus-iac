@@ -20,10 +20,10 @@ This is a .NET 8 AKS template repository with containerized Web API applications
 
 ### Naming Conventions
 - **CAF Naming**: Follow Cloud Adoption Framework naming: `{projectName}-{environment}-{region}-{instanceNumber}`
-- **AKS Clusters**: `aks-{project}-{env}-{region}-{instance}` (e.g., `aks-timelogger-prd-usw2-001`)
+- **AKS Clusters**: `aks-{project}-{env}-{region}-{instance}` (e.g., `aks-timelogger-prd-eus1-001`)
 - **Container Registries**: `acr{project}{env}{region}{instance}` (lowercase, no hyphens)
-- **Resource Groups**: `rg-{cafName}` (e.g., `rg-timelogger-prd-usw2-001`)
-- **Deployment Stacks**: `stack-{cafName}` (e.g., `stack-timelogger-prd-usw2-001`)
+- **Resource Groups**: `rg-{cafName}` (e.g., `rg-timelogger-prd-eus1-001`)
+- **Deployment Stacks**: `stack-{cafName}` (e.g., `stack-timelogger-prd-eus1-001`)
 
 ### Tags
 All Azure resources should include these tags:

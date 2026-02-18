@@ -7,7 +7,7 @@
 
 project_name    = "newaks"
 environment     = "dev"
-caf_location    = "usw2"
+caf_location    = "sea"
 instance_number = "001"
 location        = "West US 2"
 

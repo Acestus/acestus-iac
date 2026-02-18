@@ -1,5 +1,5 @@
-$CAFName = "mgmt710-corp-usw2"
-$CAFLocation = "usw2"
+$CAFName = "mgmt710-corp-eus2"
+$CAFLocation = "eus2"
 $Instance = "dev"
 $Subscription = ""
 $Location = "westus2"

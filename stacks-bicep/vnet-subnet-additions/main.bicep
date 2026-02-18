@@ -9,7 +9,7 @@ targetScope = 'resourceGroup'
 param location string = resourceGroup().location
 
 @description('The name of the existing VNet.')
-param vnetName string = 'vnet-transit-conn-usw2-001'
+param vnetName string = 'vnet-transit-conn-weu-001'
 
 @description('Tags to be applied to all resources.')
 param tags object = {}
@@ -33,7 +33,7 @@ resource existingVNet 'Microsoft.Network/virtualNetworks@2024-01-01' existing = 
 
 // App Service Integration Subnet
 resource appServiceIntegrationSubnet 'Microsoft.Network/virtualNetworks/subnets@2024-01-01' = {
-  name: 'snet-app-integration-usw2'
+  name: 'snet-app-integration-weu'
   parent: existingVNet
   properties: {
     addressPrefix: '10.65.64.0/27'  // 32 addresses for App Service integration
@@ -52,7 +52,7 @@ resource appServiceIntegrationSubnet 'Microsoft.Network/virtualNetworks/subnets@
 
 // Private Endpoints Subnet
 resource privateEndpointsSubnet 'Microsoft.Network/virtualNetworks/subnets@2024-01-01' = {
-  name: 'snet-private-endpoints-usw2'
+  name: 'snet-private-endpoints-weu'
   parent: existingVNet
   properties: {
     addressPrefix: '10.65.65.0/27'  // 32 addresses for private endpoints

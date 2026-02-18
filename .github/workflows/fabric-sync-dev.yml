@@ -21,8 +21,8 @@ env:
   AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID_DEV }}
   AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
   AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-  AKS_RESOURCE_GROUP: rg-timelogger-dev-usw2-001
-  AKS_CLUSTER_NAME: aks-timelogger-dev-usw2-001
+  AKS_RESOURCE_GROUP: rg-timelogger-dev-eus1-001
+  AKS_CLUSTER_NAME: aks-timelogger-dev-eus1-001
   ENVIRONMENT: dev
 
 jobs:

@@ -42,10 +42,10 @@ graph TB
 
 | Resource Type | Name Pattern | Purpose |
 |---------------|--------------|---------|
-| Log Analytics Workspace | `law-aspire-prd-usw2-001` | Long-term logging and monitoring |
-| Container Apps Environment | `cae-aspire-prd-usw2-001` | Production hosting platform |
-| Container App | `ca-aspire-aspire-prd-usw2-001` | Production Aspire Dashboard |
-| User Managed Identity | `umi-aspire-prd-usw2-001` | Production security identity |
+| Log Analytics Workspace | `law-aspire-prd-eus2-001` | Long-term logging and monitoring |
+| Container Apps Environment | `cae-aspire-prd-eus2-001` | Production hosting platform |
+| Container App | `ca-aspire-aspire-prd-eus2-001` | Production Aspire Dashboard |
+| User Managed Identity | `umi-aspire-prd-eus2-001` | Production security identity |
 
 ## Production Configuration
 
@@ -76,7 +76,7 @@ graph TB
 
 ```powershell
 # Navigate to the production deployment directory
-cd bicep/rg-aspire-prd-usw2-001
+cd bicep/rg-aspire-prd-eus2-001
 
 # MANDATORY: Perform what-if analysis first
 .\deploy-bicep-stack.ps1 -WhatIf
@@ -225,13 +225,13 @@ Production security features:
 1. **Check Health Status**
    ```powershell
    # Get container app status
-   az containerapp show --name "ca-aspire-aspire-prd-usw2-001" --resource-group "rg-aspire-prd-usw2-001" --query "properties.latestRevisionName,properties.runningStatus"
+   az containerapp show --name "ca-aspire-aspire-prd-eus2-001" --resource-group "rg-aspire-prd-eus2-001" --query "properties.latestRevisionName,properties.runningStatus"
    ```
 
 2. **View Application Logs**
    ```powershell
    # Stream logs (use carefully in production)
-   az containerapp logs show --name "ca-aspire-aspire-prd-usw2-001" --resource-group "rg-aspire-prd-usw2-001" --follow
+   az containerapp logs show --name "ca-aspire-aspire-prd-eus2-001" --resource-group "rg-aspire-prd-eus2-001" --follow
    ```
 
 3. **Check Scaling Status**

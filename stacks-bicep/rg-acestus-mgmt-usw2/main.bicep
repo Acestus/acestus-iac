@@ -1,14 +1,14 @@
 param sites_func_teamsalert_mgmt_usw_001_name string = 'func-teamsalert-mgmt-usw-001'
-param serverfarms_plan_acestus_mgmt_usw2_001_name string = 'plan-acestus-mgmt-usw2-001'
-param components_ai_acestus_mgmt_usw2_001_name string = 'ai-acestus-mgmt-usw2-001'
-param actionGroups_ag_emailalert_mgmt_usw2_001_name string = 'ag-emailalert-mgmt-usw2-001'
-param actionGroups_ag_teamsalert_mgmt_usw2_001_name string = 'ag-teamsalert-mgmt-usw2-001'
-param smartdetectoralertrules_failure_anomalies_ai_acestus_mgmt_usw2_001_name string = 'failure anomalies - ai-acestus-mgmt-usw2-001'
+param serverfarms_plan_acestus_mgmt_eus2_001_name string = 'plan-acestus-mgmt-eus2-001'
+param components_ai_acestus_mgmt_eus2_001_name string = 'ai-acestus-mgmt-eus2-001'
+param actionGroups_ag_emailalert_mgmt_eus2_001_name string = 'ag-emailalert-mgmt-eus2-001'
+param actionGroups_ag_teamsalert_mgmt_eus2_001_name string = 'ag-teamsalert-mgmt-eus2-001'
+param smartdetectoralertrules_failure_anomalies_ai_acestus_mgmt_eus2_001_name string = 'failure anomalies - ai-acestus-mgmt-eus2-001'
 param actiongroups_application_insights_smart_detection_externalid string = '/subscriptions/<subscription-id>/resourceGroups/azurenamingtool/providers/microsoft.insights/actiongroups/application insights smart detection'
 param workspaces_Acestus_law_externalid string = '/subscriptions/<subscription-id>/resourceGroups/Acestus-mgmt/providers/Microsoft.OperationalInsights/workspaces/Acestus-law'
 
-resource actionGroups_ag_emailalert_mgmt_usw2_001_name_resource 'microsoft.insights/actionGroups@2024-10-01-preview' = {
-  name: actionGroups_ag_emailalert_mgmt_usw2_001_name
+resource actionGroups_ag_emailalert_mgmt_eus2_001_name_resource 'microsoft.insights/actionGroups@2024-10-01-preview' = {
+  name: actionGroups_ag_emailalert_mgmt_eus2_001_name
   location: 'Global'
   tags: {
     Environment: 'Production'
@@ -40,8 +40,8 @@ resource actionGroups_ag_emailalert_mgmt_usw2_001_name_resource 'microsoft.insig
   }
 }
 
-resource components_ai_acestus_mgmt_usw2_001_name_resource 'microsoft.insights/components@2020-02-02' = {
-  name: components_ai_acestus_mgmt_usw2_001_name
+resource components_ai_acestus_mgmt_eus2_001_name_resource 'microsoft.insights/components@2020-02-02' = {
+  name: components_ai_acestus_mgmt_eus2_001_name
   location: 'westus2'
   tags: {
     CostCenter: '510-Infrastructure-Production'
@@ -61,8 +61,8 @@ resource components_ai_acestus_mgmt_usw2_001_name_resource 'microsoft.insights/c
   }
 }
 
-resource serverfarms_plan_acestus_mgmt_usw2_001_name_resource 'Microsoft.Web/serverfarms@2024-11-01' = {
-  name: serverfarms_plan_acestus_mgmt_usw2_001_name
+resource serverfarms_plan_acestus_mgmt_eus2_001_name_resource 'Microsoft.Web/serverfarms@2024-11-01' = {
+  name: serverfarms_plan_acestus_mgmt_eus2_001_name
   location: 'West US 2'
   tags: {
     CostCenter: '510-Infrastructure-Production'
@@ -92,8 +92,8 @@ resource serverfarms_plan_acestus_mgmt_usw2_001_name_resource 'Microsoft.Web/ser
   }
 }
 
-resource smartdetectoralertrules_failure_anomalies_ai_acestus_mgmt_usw2_001_name_resource 'microsoft.alertsmanagement/smartdetectoralertrules@2021-04-01' = {
-  name: smartdetectoralertrules_failure_anomalies_ai_acestus_mgmt_usw2_001_name
+resource smartdetectoralertrules_failure_anomalies_ai_acestus_mgmt_eus2_001_name_resource 'microsoft.alertsmanagement/smartdetectoralertrules@2021-04-01' = {
+  name: smartdetectoralertrules_failure_anomalies_ai_acestus_mgmt_eus2_001_name
   location: 'global'
   tags: {
     CostCenter: '510-Infrastructure-Production'
@@ -109,7 +109,7 @@ resource smartdetectoralertrules_failure_anomalies_ai_acestus_mgmt_usw2_001_name
       id: 'FailureAnomaliesDetector'
     }
     scope: [
-      components_ai_acestus_mgmt_usw2_001_name_resource.id
+      components_ai_acestus_mgmt_eus2_001_name_resource.id
     ]
     actionGroups: {
       groupIds: [
@@ -119,8 +119,8 @@ resource smartdetectoralertrules_failure_anomalies_ai_acestus_mgmt_usw2_001_name
   }
 }
 
-resource actionGroups_ag_teamsalert_mgmt_usw2_001_name_resource 'microsoft.insights/actionGroups@2024-10-01-preview' = {
-  name: actionGroups_ag_teamsalert_mgmt_usw2_001_name
+resource actionGroups_ag_teamsalert_mgmt_eus2_001_name_resource 'microsoft.insights/actionGroups@2024-10-01-preview' = {
+  name: actionGroups_ag_teamsalert_mgmt_eus2_001_name
   location: 'Global'
   tags: {
     Environment: 'Production'
@@ -154,8 +154,8 @@ resource actionGroups_ag_teamsalert_mgmt_usw2_001_name_resource 'microsoft.insig
   }
 }
 
-resource components_ai_acestus_mgmt_usw2_001_name_degradationindependencyduration 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
-  parent: components_ai_acestus_mgmt_usw2_001_name_resource
+resource components_ai_acestus_mgmt_eus2_001_name_degradationindependencyduration 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
+  parent: components_ai_acestus_mgmt_eus2_001_name_resource
   name: 'degradationindependencyduration'
   location: 'westus2'
   properties: {
@@ -175,8 +175,8 @@ resource components_ai_acestus_mgmt_usw2_001_name_degradationindependencyduratio
   }
 }
 
-resource components_ai_acestus_mgmt_usw2_001_name_degradationinserverresponsetime 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
-  parent: components_ai_acestus_mgmt_usw2_001_name_resource
+resource components_ai_acestus_mgmt_eus2_001_name_degradationinserverresponsetime 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
+  parent: components_ai_acestus_mgmt_eus2_001_name_resource
   name: 'degradationinserverresponsetime'
   location: 'westus2'
   properties: {
@@ -196,8 +196,8 @@ resource components_ai_acestus_mgmt_usw2_001_name_degradationinserverresponsetim
   }
 }
 
-resource components_ai_acestus_mgmt_usw2_001_name_digestMailConfiguration 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
-  parent: components_ai_acestus_mgmt_usw2_001_name_resource
+resource components_ai_acestus_mgmt_eus2_001_name_digestMailConfiguration 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
+  parent: components_ai_acestus_mgmt_eus2_001_name_resource
   name: 'digestMailConfiguration'
   location: 'westus2'
   properties: {
@@ -217,8 +217,8 @@ resource components_ai_acestus_mgmt_usw2_001_name_digestMailConfiguration 'micro
   }
 }
 
-resource components_ai_acestus_mgmt_usw2_001_name_extension_billingdatavolumedailyspikeextension 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
-  parent: components_ai_acestus_mgmt_usw2_001_name_resource
+resource components_ai_acestus_mgmt_eus2_001_name_extension_billingdatavolumedailyspikeextension 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
+  parent: components_ai_acestus_mgmt_eus2_001_name_resource
   name: 'extension_billingdatavolumedailyspikeextension'
   location: 'westus2'
   properties: {
@@ -238,8 +238,8 @@ resource components_ai_acestus_mgmt_usw2_001_name_extension_billingdatavolumedai
   }
 }
 
-resource components_ai_acestus_mgmt_usw2_001_name_extension_canaryextension 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
-  parent: components_ai_acestus_mgmt_usw2_001_name_resource
+resource components_ai_acestus_mgmt_eus2_001_name_extension_canaryextension 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
+  parent: components_ai_acestus_mgmt_eus2_001_name_resource
   name: 'extension_canaryextension'
   location: 'westus2'
   properties: {
@@ -259,8 +259,8 @@ resource components_ai_acestus_mgmt_usw2_001_name_extension_canaryextension 'mic
   }
 }
 
-resource components_ai_acestus_mgmt_usw2_001_name_extension_exceptionchangeextension 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
-  parent: components_ai_acestus_mgmt_usw2_001_name_resource
+resource components_ai_acestus_mgmt_eus2_001_name_extension_exceptionchangeextension 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
+  parent: components_ai_acestus_mgmt_eus2_001_name_resource
   name: 'extension_exceptionchangeextension'
   location: 'westus2'
   properties: {
@@ -280,8 +280,8 @@ resource components_ai_acestus_mgmt_usw2_001_name_extension_exceptionchangeexten
   }
 }
 
-resource components_ai_acestus_mgmt_usw2_001_name_extension_memoryleakextension 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
-  parent: components_ai_acestus_mgmt_usw2_001_name_resource
+resource components_ai_acestus_mgmt_eus2_001_name_extension_memoryleakextension 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
+  parent: components_ai_acestus_mgmt_eus2_001_name_resource
   name: 'extension_memoryleakextension'
   location: 'westus2'
   properties: {
@@ -301,8 +301,8 @@ resource components_ai_acestus_mgmt_usw2_001_name_extension_memoryleakextension 
   }
 }
 
-resource components_ai_acestus_mgmt_usw2_001_name_extension_securityextensionspackage 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
-  parent: components_ai_acestus_mgmt_usw2_001_name_resource
+resource components_ai_acestus_mgmt_eus2_001_name_extension_securityextensionspackage 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
+  parent: components_ai_acestus_mgmt_eus2_001_name_resource
   name: 'extension_securityextensionspackage'
   location: 'westus2'
   properties: {
@@ -322,8 +322,8 @@ resource components_ai_acestus_mgmt_usw2_001_name_extension_securityextensionspa
   }
 }
 
-resource components_ai_acestus_mgmt_usw2_001_name_extension_traceseveritydetector 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
-  parent: components_ai_acestus_mgmt_usw2_001_name_resource
+resource components_ai_acestus_mgmt_eus2_001_name_extension_traceseveritydetector 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
+  parent: components_ai_acestus_mgmt_eus2_001_name_resource
   name: 'extension_traceseveritydetector'
   location: 'westus2'
   properties: {
@@ -343,8 +343,8 @@ resource components_ai_acestus_mgmt_usw2_001_name_extension_traceseveritydetecto
   }
 }
 
-resource components_ai_acestus_mgmt_usw2_001_name_longdependencyduration 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
-  parent: components_ai_acestus_mgmt_usw2_001_name_resource
+resource components_ai_acestus_mgmt_eus2_001_name_longdependencyduration 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
+  parent: components_ai_acestus_mgmt_eus2_001_name_resource
   name: 'longdependencyduration'
   location: 'westus2'
   properties: {
@@ -364,8 +364,8 @@ resource components_ai_acestus_mgmt_usw2_001_name_longdependencyduration 'micros
   }
 }
 
-resource components_ai_acestus_mgmt_usw2_001_name_migrationToAlertRulesCompleted 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
-  parent: components_ai_acestus_mgmt_usw2_001_name_resource
+resource components_ai_acestus_mgmt_eus2_001_name_migrationToAlertRulesCompleted 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
+  parent: components_ai_acestus_mgmt_eus2_001_name_resource
   name: 'migrationToAlertRulesCompleted'
   location: 'westus2'
   properties: {
@@ -385,8 +385,8 @@ resource components_ai_acestus_mgmt_usw2_001_name_migrationToAlertRulesCompleted
   }
 }
 
-resource components_ai_acestus_mgmt_usw2_001_name_slowpageloadtime 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
-  parent: components_ai_acestus_mgmt_usw2_001_name_resource
+resource components_ai_acestus_mgmt_eus2_001_name_slowpageloadtime 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
+  parent: components_ai_acestus_mgmt_eus2_001_name_resource
   name: 'slowpageloadtime'
   location: 'westus2'
   properties: {
@@ -406,8 +406,8 @@ resource components_ai_acestus_mgmt_usw2_001_name_slowpageloadtime 'microsoft.in
   }
 }
 
-resource components_ai_acestus_mgmt_usw2_001_name_slowserverresponsetime 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
-  parent: components_ai_acestus_mgmt_usw2_001_name_resource
+resource components_ai_acestus_mgmt_eus2_001_name_slowserverresponsetime 'microsoft.insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
+  parent: components_ai_acestus_mgmt_eus2_001_name_resource
   name: 'slowserverresponsetime'
   location: 'westus2'
   properties: {
@@ -455,7 +455,7 @@ resource sites_func_teamsalert_mgmt_usw_001_name_resource 'Microsoft.Web/sites@2
         hostType: 'Repository'
       }
     ]
-    serverFarmId: serverfarms_plan_acestus_mgmt_usw2_001_name_resource.id
+    serverFarmId: serverfarms_plan_acestus_mgmt_eus2_001_name_resource.id
     reserved: true
     isXenon: false
     hyperV: false

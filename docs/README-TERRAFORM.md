@@ -25,7 +25,7 @@ modules-terraform/
 └── ...
 
 stacks-terraform/
-└── rg-aksana-usw2/                 # Example stack
+└── rg-aksana-swc/                 # Example stack
     ├── main.tf                     # Stack configuration
     ├── variables.tf                # Stack variables
     ├── outputs.tf                  # Stack outputs
@@ -86,9 +86,9 @@ module "aks_stack" {
   version = "1.0.0"
 
   # Module parameters
-  aks_name                = "aks-myapp-dev-usw2-001"
-  container_registry_name = "acrmyappdevusw2001"
-  key_vault_name          = "kv-myapp-dev-usw2"
+  aks_name                = "aks-myapp-dev-swc-001"
+  container_registry_name = "acrmyappdevswc001"
+  key_vault_name          = "kv-myapp-dev-swc"
   resource_group_name     = azurerm_resource_group.main.name
   location                = azurerm_resource_group.main.location
 
@@ -157,7 +157,7 @@ terraform {
 ### Initialize and Deploy
 
 ```powershell
-cd stacks-terraform/rg-aksana-usw2
+cd stacks-terraform/rg-aksana-swc
 
 # Initialize with ACR authentication
 az acr login --name <your-acr-name>
@@ -182,7 +182,7 @@ terraform {
     resource_group_name  = "rg-terraform-state"
     storage_account_name = "stterraformstate"
     container_name       = "tfstate"
-    key                  = "rg-aksana-usw2.tfstate"
+    key                  = "rg-aksana-swc.tfstate"
   }
 }
 ```

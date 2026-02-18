@@ -1,6 +1,6 @@
 using 'main.bicep'
 
-param CAFName = 'acestus-idnt-usw2-001'
+param CAFName = 'acestus-idnt-eus2-001'
 param workspaceResourceId = '/subscriptions/<subscription-id>/resourcegroups/Acestus-mgmt/providers/microsoft.operationalinsights/workspaces/Acestus-law'
 
 param tags = {

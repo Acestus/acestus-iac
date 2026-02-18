@@ -21,8 +21,8 @@ env:
   AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID_PRD }}
   AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
   AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-  AKS_RESOURCE_GROUP: rg-timelogger-prd-usw2-001
-  AKS_CLUSTER_NAME: aks-timelogger-prd-usw2-001
+  AKS_RESOURCE_GROUP: rg-timelogger-prd-eus1-001
+  AKS_CLUSTER_NAME: aks-timelogger-prd-eus1-001
   ENVIRONMENT: prd
 
 jobs:

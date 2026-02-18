@@ -50,7 +50,7 @@ This is a custom Bicep module for Azure AMA that implements Acestus security sta
 module ama 'br/public:avm/ptn/alz/ama:0.1.1' = {
   name: 'myAMA'
   params: {
-    name: 'ama-dev-usw2-001'
+    name: 'ama-dev-wus3-001'
     location: location
     tags: tags
     appServicePlanId: appServicePlan.id

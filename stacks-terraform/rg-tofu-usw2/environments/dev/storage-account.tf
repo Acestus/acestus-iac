@@ -16,8 +16,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "example" {
-  name     = "rg-tofu-dev-usw2"
-  location = "West US 2"
+  name     = "rg-tofu-dev-jpe"
+  location = "Japan East"
 
   tags = {
     Environment = "dev"
@@ -30,7 +30,7 @@ module "storage-account-01" {
   source = "Azure/avm-res-storage-storageaccount/azurerm"
   version = "~> 0.6"
 
-  name                = "sttofudevusw2001"
+  name                = "sttofudevjpe001"
   resource_group_name = azurerm_resource_group.example.name
   location           = azurerm_resource_group.example.location
   account_tier             = "Standard"

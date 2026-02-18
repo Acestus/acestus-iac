@@ -49,7 +49,7 @@ param daprAIInstrumentationKey string = ''
 @description('App Insights connection string')
 param appInsightsConnectionString string = ''
 
-// Use the same AVM version as rg-aspire-usw2 stack for compatibility
+// Use the same AVM version as rg-aspire-wus3 stack for compatibility
 module containerAppsEnvironment 'br/public:avm/res/app/managed-environment:0.11.3' = {
   name: '${deployment().name}-cae'
   params: {

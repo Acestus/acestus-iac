@@ -17,7 +17,7 @@ jobs:
     uses: ./.github/workflows/aks-deploy-dotnet.yaml
     with:
       environment: preview
-      resource_group_name: rg-myapp-preview-usw2
+      resource_group_name: rg-myapp-preview-swc
       stack_name: stack-myapp-preview
       template_file: infrastructure/main.bicep
       params_file: infrastructure/main.preview.bicepparam
@@ -58,7 +58,7 @@ jobs:
     uses: ./.github/workflows/aks-deploy-dotnet.yaml
     with:
       environment: prd
-      resource_group_name: rg-myapp-prd-usw2
+      resource_group_name: rg-myapp-prd-swc
       stack_name: stack-myapp-prd
       template_file: infrastructure/main.bicep
       params_file: infrastructure/main.prd.bicepparam

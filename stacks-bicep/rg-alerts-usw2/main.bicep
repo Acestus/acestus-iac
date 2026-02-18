@@ -31,7 +31,7 @@ var applicationInsightsName = 'ai-${projectName}-${environment}-${CAFLocation}-$
 var functionAppName = 'func-${projectName}-${environment}-${CAFLocation}-${instanceNumber}'
 var userManagedIdentityName = 'umi-${projectName}-${environment}-${CAFLocation}-${instanceNumber}'
 
-module userManagedIdentity 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/user-managed-identity:v1.1.0' = {
+module userManagedIdentity 'br:acracemgtcrprdeus2001.azurecr.io/bicep/modules/user-managed-identity:v1.1.0' = {
   name: '${deployment().name}-umi'
   params: {
     name: userManagedIdentityName
@@ -68,7 +68,7 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.31.0' = {
   }
 }
 
-module applicationInsights 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/app-insights:v1.1.0' = {
+module applicationInsights 'br:acracemgtcrprdeus2001.azurecr.io/bicep/modules/app-insights:v1.1.0' = {
   name: '${deployment().name}-ai'
   params: {
     name: applicationInsightsName

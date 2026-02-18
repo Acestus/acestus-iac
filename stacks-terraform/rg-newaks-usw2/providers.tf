@@ -15,7 +15,7 @@ terraform {
   #   resource_group_name  = "rg-terraform-state"
   #   storage_account_name = "stterraformstate"
   #   container_name       = "tfstate"
-  #   key                  = "rg-newaks-usw2.tfstate"
+  #   key                  = "rg-newaks-sea.tfstate"
   # }
 }
 

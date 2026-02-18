@@ -2,7 +2,7 @@ using '../../main.bicep'
 
 param projectName = 'aceedm'
 param environment = 'dev'
-param CAFLocation = 'usw2'
+param CAFLocation = 'eus2'
 param instanceNumber = '001'
 param workspaceResourceId = '/subscriptions/<subscription-id>/resourcegroups/Acestus-mgmt/providers/microsoft.operationalinsights/workspaces/Acestus-law'
 

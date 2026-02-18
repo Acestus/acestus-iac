@@ -70,10 +70,10 @@ systemAgentPoolProfile: {
 
 ### Basic AKS Cluster
 ```bicep
-module aks 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/aks-cluster:v1.0.0' = {
+module aks 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/aks-cluster:v1.0.0' = {
   name: 'myAksCluster'
   params: {
-    name: 'aks-myapp-dev-usw2-001'
+    name: 'aks-myapp-dev-wus3-001'
     aadAdminGroupObjectIds: ['00000000-0000-0000-0000-000000000000']
     logAnalyticsWorkspaceResourceId: logAnalytics.outputs.resourceId
   }
@@ -82,10 +82,10 @@ module aks 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/aks-cluster:v1.0.0
 
 ### AKS with VNet Integration
 ```bicep
-module aks 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/aks-cluster:v1.0.0' = {
+module aks 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/aks-cluster:v1.0.0' = {
   name: 'myAksWithVnet'
   params: {
-    name: 'aks-myapp-prd-usw2-001'
+    name: 'aks-myapp-prd-wus3-001'
     subnetResourceId: aksSubnet.outputs.resourceId
     aadAdminGroupObjectIds: ['00000000-0000-0000-0000-000000000000']
     logAnalyticsWorkspaceResourceId: logAnalytics.outputs.resourceId
@@ -112,10 +112,10 @@ module aks 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/aks-cluster:v1.0.0
 
 ### Private AKS Cluster
 ```bicep
-module aks 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/aks-cluster:v1.0.0' = {
+module aks 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/aks-cluster:v1.0.0' = {
   name: 'myPrivateAks'
   params: {
-    name: 'aks-secure-prd-usw2-001'
+    name: 'aks-secure-prd-wus3-001'
     enablePrivateCluster: true
     privateDNSZone: privateDnsZone.outputs.resourceId
     subnetResourceId: aksSubnet.outputs.resourceId
@@ -128,10 +128,10 @@ module aks 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/aks-cluster:v1.0.0
 
 ### AKS with Cilium (Advanced Networking)
 ```bicep
-module aks 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/aks-cluster:v1.0.0' = {
+module aks 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/aks-cluster:v1.0.0' = {
   name: 'myAksWithCilium'
   params: {
-    name: 'aks-cilium-prd-usw2-001'
+    name: 'aks-cilium-prd-wus3-001'
     networkPlugin: 'azure'
     networkPluginMode: 'overlay'
     networkPolicy: 'cilium'
@@ -145,10 +145,10 @@ module aks 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/aks-cluster:v1.0.0
 
 ### AKS with AGIC (Application Gateway Ingress Controller)
 ```bicep
-module aks 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/aks-cluster:v1.0.0' = {
+module aks 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/aks-cluster:v1.0.0' = {
   name: 'myAksWithAgic'
   params: {
-    name: 'aks-web-prd-usw2-001'
+    name: 'aks-web-prd-wus3-001'
     subnetResourceId: aksSubnet.outputs.resourceId
     ingressApplicationGatewayEnabled: true
     appGatewayResourceId: appGateway.outputs.resourceId

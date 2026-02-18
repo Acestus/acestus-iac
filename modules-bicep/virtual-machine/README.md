@@ -52,10 +52,10 @@ This is a custom Bicep module for Azure Virtual Machines that implements Acestus
 
 ### Basic Linux VM with SSH
 ```bicep
-module linuxVm 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/virtual-machine:v1.0.0' = {
+module linuxVm 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/virtual-machine:v1.0.0' = {
   name: 'myLinuxVm'
   params: {
-    name: 'vm-app-dev-usw2-001'
+    name: 'vm-app-dev-wus3-001'
     sshPublicKey: loadTextContent('~/.ssh/id_rsa.pub')
     nicConfigurations: [
       {
@@ -75,10 +75,10 @@ module linuxVm 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/virtual-machin
 
 ### Windows VM with Password
 ```bicep
-module windowsVm 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/virtual-machine:v1.0.0' = {
+module windowsVm 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/virtual-machine:v1.0.0' = {
   name: 'myWindowsVm'
   params: {
-    name: 'vm-win-prd-usw2-001'
+    name: 'vm-win-prd-wus3-001'
     osType: 'Windows'
     imageReference: {
       publisher: 'MicrosoftWindowsServer'
@@ -106,10 +106,10 @@ module windowsVm 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/virtual-mach
 
 ### VM with Data Disks and Availability Zone
 ```bicep
-module vmWithDisks 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/virtual-machine:v1.0.0' = {
+module vmWithDisks 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/virtual-machine:v1.0.0' = {
   name: 'myVmWithDisks'
   params: {
-    name: 'vm-data-prd-usw2-001'
+    name: 'vm-data-prd-wus3-001'
     vmSize: 'Standard_D4s_v5'
     zone: '1'
     dataDisks: [
@@ -152,10 +152,10 @@ module vmWithDisks 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/virtual-ma
 
 ### Confidential VM
 ```bicep
-module confidentialVm 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/virtual-machine:v1.0.0' = {
+module confidentialVm 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/virtual-machine:v1.0.0' = {
   name: 'myConfidentialVm'
   params: {
-    name: 'vm-secure-prd-usw2-001'
+    name: 'vm-secure-prd-wus3-001'
     vmSize: 'Standard_DC2as_v5'
     securityType: 'ConfidentialVM'
     encryptionAtHost: true

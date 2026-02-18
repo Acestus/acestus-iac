@@ -10,7 +10,7 @@ az login
 az acr login --name <your-acr-name>
 
 # 2. Initialize and deploy
-cd stacks-terraform/rg-newaks-usw2
+cd stacks-terraform/rg-newaks-swc
 terraform init
 terraform apply -var-file=environments/dev/terraform.tfvars
 ```
@@ -49,7 +49,7 @@ modules-terraform/
     └── versions.tf           # Provider requirements
 
 stacks-terraform/
-└── rg-newaks-usw2/           # AKS stack
+└── rg-newaks-swc/           # AKS stack
     ├── main.tf               # Stack configuration
     ├── variables.tf          # Stack variables
     ├── outputs.tf            # Stack outputs
@@ -69,9 +69,9 @@ module "aks_stack" {
   source  = "oci://<your-acr-name>.azurecr.io/terraform/modules/aks-azd-pattern"
   version = "1.0.0"
 
-  aks_name                = "aks-myapp-dev-usw2-001"
-  container_registry_name = "acrmyappdevusw2001"
-  key_vault_name          = "kv-myapp-dev-usw2"
+  aks_name                = "aks-myapp-dev-swc-001"
+  container_registry_name = "acrmyappdevswc001"
+  key_vault_name          = "kv-myapp-dev-swc"
   resource_group_name     = azurerm_resource_group.main.name
   location                = azurerm_resource_group.main.location
 
@@ -134,7 +134,7 @@ agent_pool_size  = "HighSpec"
 ### Initialize
 
 ```powershell
-cd stacks-terraform/rg-newaks-usw2
+cd stacks-terraform/rg-newaks-swc
 az acr login --name <your-acr-name>
 terraform init
 ```
@@ -163,7 +163,7 @@ terraform destroy -var-file=environments/dev/terraform.tfvars
 
 ```powershell
 # Get credentials
-az aks get-credentials --resource-group rg-newaks-dev-usw2-001 --name aks-newaks-dev-usw2-001
+az aks get-credentials --resource-group rg-newaks-dev-swc-001 --name aks-newaks-dev-swc-001
 
 # Verify
 kubectl get nodes
@@ -174,11 +174,11 @@ kubectl cluster-info
 
 ```powershell
 # Login to ACR
-az acr login --name acrnewaksdevusw2001
+az acr login --name acrnewaksdevswc001
 
 # Tag and push
-docker tag myapp:latest acrnewaksdevusw2001.azurecr.io/myapp:v1.0.0
-docker push acrnewaksdevusw2001.azurecr.io/myapp:v1.0.0
+docker tag myapp:latest acrnewaksdevswc001.azurecr.io/myapp:v1.0.0
+docker push acrnewaksdevswc001.azurecr.io/myapp:v1.0.0
 ```
 
 ### Deploy to AKS
@@ -201,7 +201,7 @@ spec:
     spec:
       containers:
       - name: myapp
-        image: acrnewaksdevusw2001.azurecr.io/myapp:v1.0.0
+        image: acrnewaksdevswc001.azurecr.io/myapp:v1.0.0
         ports:
         - containerPort: 8080
 ```
@@ -278,5 +278,5 @@ az aks get-credentials --resource-group <rg-name> --name <aks-name> --overwrite-
 ## Related Files
 
 - Module: `modules-terraform/aks-azd-pattern/`
-- Stack: `stacks-terraform/rg-newaks-usw2/`
+- Stack: `stacks-terraform/rg-newaks-swc/`
 - Full Terraform docs: `docs/README-TERRAFORM.md`

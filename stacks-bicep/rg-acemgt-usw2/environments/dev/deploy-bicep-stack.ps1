@@ -3,10 +3,10 @@
 
 param(
     [Parameter(Mandatory = $false)]
-    [string]$StackName = "stack-acemgt-dev-usw2-001",
+    [string]$StackName = "stack-acemgt-dev-eus2-001",
     
     [Parameter(Mandatory = $false)]
-    [string]$ResourceGroupName = "rg-acemgt-dev-usw2-001"
+    [string]$ResourceGroupName = "rg-acemgt-dev-eus2-001"
 )
 
 # Set error handling

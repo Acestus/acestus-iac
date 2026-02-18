@@ -7,10 +7,10 @@ terraform {
     }
   }
   backend "azurerm" {
-    resource_group_name  = "rg-labmgmt-sbox-usw2"
-    storage_account_name = "stdeviacusw2003"
+    resource_group_name  = "rg-labmgmt-sbox-sea"
+    storage_account_name = "stdeviacsea003"
     container_name       = "dev"
-    key                  = "rg-dns-dev-usw2.tfstate"
+    key                  = "rg-dns-dev-sea.tfstate"
   }
 }
 

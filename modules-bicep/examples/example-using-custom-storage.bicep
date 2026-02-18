@@ -19,7 +19,7 @@ param tags object = {
 var storageAccountName = 'st${projectName}${environment}${locationCode}${instanceNumber}'
 
 // Example 1: Basic storage account using custom module
-module basicStorage 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/storage-account:v1.0.0' = {
+module basicStorage 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/storage-account:v1.0.0' = {
   name: 'basicStorage'
   params: {
     storageAccountName: storageAccountName
@@ -32,7 +32,7 @@ module basicStorage 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/storage-a
 }
 
 // Example 2: Function App storage with specific containers
-module functionStorage 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/storage-account:v1.0.0' = {
+module functionStorage 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/storage-account:v1.0.0' = {
   name: 'functionStorage'
   params: {
     storageAccountName: 'stfunc${projectName}${environment}${locationCode}${instanceNumber}'
@@ -56,7 +56,7 @@ module functionStorage 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/storag
 
 // Example 3: Secure storage with customer managed keys (requires additional setup)
 /*
-module secureStorage 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/storage-account:v1.0.0' = {
+module secureStorage 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/storage-account:v1.0.0' = {
   name: 'secureStorage'
   params: {
     storageAccountName: 'stsec${projectName}${environment}${locationCode}${instanceNumber}'

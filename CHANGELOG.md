@@ -82,7 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Ingestion Pipeline** (`pl_ing_api_brz`) - Copies JSON data from Azure Blob Storage to Bronze lakehouse
-  - Source: `stapidevusw2001/container-development`
+  - Source: `stapidevfrc001/container-development`
   - Destination: `lh_api_brz.dbo.time_logs`
   - Uses workspace identity authentication
 - **Deployment Parameters** - Environment-specific configuration files

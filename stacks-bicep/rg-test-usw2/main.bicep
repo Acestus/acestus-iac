@@ -18,7 +18,7 @@ param tags object
 var functionAppName = 'func-${projectName}-${environment}-${region}-${instanceNumber}'
 var storageAccountName = 'st${projectName}${environment}${region}${instanceNumber}'
 
-module customStorageModule 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/storage-account:v1.0.2' = {
+module customStorageModule 'br:acracemgtcrprdeus2001.azurecr.io/bicep/modules/storage-account:v1.0.2' = {
   name: 'customStorageTest'
   params: {
     storageAccountName: storageAccountName
@@ -29,7 +29,7 @@ module customStorageModule 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/st
   }
 }
 
-module functionApp 'br:acracemgtcrprdusw2001.azurecr.io/bicep/modules/function-app/function-app:v1.0.0' = {
+module functionApp 'br:acracemgtcrprdeus2001.azurecr.io/bicep/modules/function-app/function-app:v1.0.0' = {
   name: 'functionApp'
   params: {
     name: functionAppName
