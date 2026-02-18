@@ -1,17 +1,16 @@
-// Azure Kubernetes Service (AKS) Template Infrastructure - .NET
-// Deploys AKS cluster with Azure Container Registry
-// Note: This template uses ACR-hosted Bicep modules. Replace with your own ACR or use public modules.
+// Acestus .NET AKS Template - AVM Patterns
+// Uses Azure Verified Modules (AVM) for best-practice deployment
 
 // ============================================================================
 // Parameters
 // ============================================================================
 
 @description('Project name used in resource naming')
-param projectName string = 'aksdotnet'
+param projectName string = 'timelogger'
 
 @description('Environment: dev, stg, prd')
 @allowed(['dev', 'stg', 'prd'])
-param environment string
+param environment string = 'dev'
 
 @description('Azure region short code for naming')
 param regionCode string = 'usw2'
@@ -32,10 +31,16 @@ param nodeVmSize string = 'Standard_D2s_v3'
 param nodeCount int = 2
 
 @description('Username who created the resources')
-param createdBy string
+param createdBy string = 'deployment-pipeline'
 
 @description('Additional tags to apply to resources')
-param tags object = {}
+param tags object = {
+  ManagedBy: '<your-repo-url>'
+  CreatedBy: createdBy
+  Subscription: '<your-subscription-name>'
+  Project: 'Time Logger Template'
+  CAFName: '${projectName}-${environment}-${regionCode}-${instanceNumber}'
+}
 
 @description('Existing ACR name')
 param existingAcrName string = ''
@@ -98,10 +103,105 @@ var useExistingAppInsights = existingAppInsightsName != ''
 // Resources
 // ============================================================================
 
+// Subscription vending (lz/sub-vending)
+module subVending 'br:acrskpmgtcrprdusw2001.azurecr.io/bicep/lz/sub-vending:0.5.3' = {
+  name: 'sub-vending'
+  params: {
+    projectName: projectName
+    environment: environment
+    regionCode: regionCode
+    instanceNumber: instanceNumber
+    location: location
+    tags: tags
+  }
+}
+
+// Hub networking (network/hub-networking)
+module hubNetworking 'br:acrskpmgtcrprdusw2001.azurecr.io/bicep/network/hub-networking:0.5.0' = {
+  name: 'hub-networking'
+  params: {
+    projectName: projectName
+    environment: environment
+    regionCode: regionCode
+    instanceNumber: instanceNumber
+    location: location
+    tags: tags
+  }
+}
+
+// Azure Container Registry (res/container-registry)
+module acr 'br:acrskpmgtcrprdusw2001.azurecr.io/bicep/res/container-registry:0.5.1' = {
+  name: 'acr'
+  params: {
+    projectName: projectName
+    environment: environment
+    regionCode: regionCode
+    instanceNumber: instanceNumber
+    location: location
+    tags: tags
+    sku: 'Basic'
+    geoReplicationEnabled: false
+    vulnerabilityAssessmentEnabled: true
+  }
+}
+
+// AKS Landing Zone Accelerator (ptn/aks-lza)
+module aksLza 'br:acrskpmgtcrprdusw2001.azurecr.io/bicep/ptn/aks-lza:0.3.0' = {
+  name: 'aks-lza'
+  params: {
+    projectName: projectName
+    environment: environment
+    regionCode: regionCode
+    instanceNumber: instanceNumber
+    location: location
+    tags: tags
+    containerRegistryId: acr.outputs.resourceId
+    hubNetworkId: hubNetworking.outputs.virtualNetworkId
+    enableDefender: true
+    enableAzureAD: true
+    enableCNI: true
+    enableAGIC: true
+  }
+}
+
+// RBAC management (authorization/resource-role-assignment)
+module rbacAssignment 'br:acrskpmgtcrprdusw2001.azurecr.io/bicep/authorization/resource-role-assignment:0.1.2' = {
+  name: 'rbac-assignment'
+  params: {
+    principalId: aksLza.outputs.kubeletIdentityPrincipalId
+    scope: acr.outputs.resourceId
+    roleDefinitionId: 'acdd72a7-3385-48ef-bd42-f606fba81ae7' // AcrPull
+  }
+}
+
+// Centralized monitoring (azd/monitoring)
+module monitoring 'br:acrskpmgtcrprdusw2001.azurecr.io/bicep/azd/monitoring:0.2.1' = {
+  name: 'monitoring'
+  params: {
+    projectName: projectName
+    environment: environment
+    regionCode: regionCode
+    instanceNumber: instanceNumber
+    location: location
+    tags: tags
+    aksClusterId: aksLza.outputs.resourceId
+    logAnalyticsWorkspaceId: monitoring.outputs.logAnalyticsWorkspaceId
+    enablePrometheus: true
+    enableContainerInsights: true
+  }
+}
+
 // Reference to existing Log Analytics Workspace (if provided)
-resource existingLogAnalytics 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = if (useExistingLogAnalytics) {
-  name: existingLogAnalyticsName
-  scope: resourceGroup(existingLogAnalyticsSubscriptionId, existingLogAnalyticsResourceGroup)
+// Log Analytics Workspace for AKS monitoring
+module logAnalytics 'br:acrskpmgtcrprdusw2001.azurecr.io/bicep/log-analytics-workspace:v1.2.0' = {
+  name: 'deploy-${logAnalyticsName}'
+  params: {
+    name: logAnalyticsName
+    location: location
+    tags: mergedTags
+    sku: 'PerGB2018'
+    retentionInDays: 30
+  }
 }
 
 // Log Analytics Workspace for AKS monitoring
@@ -117,24 +217,35 @@ module logAnalytics 'br:acrskpmgtcrprdusw2001.azurecr.io/bicep/log-analytics-wor
 }
 
 // Reference to existing User Assigned Identity (if provided)
-resource existingIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = if (useExistingIdentity) {
-  name: existingIdentityName
-  scope: resourceGroup(existingIdentityResourceGroup)
+module userAssignedIdentity 'br:acrskpmgtcrprdusw2001.azurecr.io/bicep/user-managed-identity:v1.0.0' = {
+  name: 'deploy-${cafName}-identity'
+  params: {
+    name: '${cafName}-identity'
+    location: location
+    tags: mergedTags
+  }
 }
 
 // Reference to existing Application Insights (if provided)
-resource existingAppInsights 'Microsoft.Insights/components@2020-02-02' existing = if (useExistingAppInsights) {
-  name: existingAppInsightsName
-  scope: resourceGroup(existingAppInsightsResourceGroup)
+module appInsights 'br:acrskpmgtcrprdusw2001.azurecr.io/bicep/app-insights:v1.0.0' = {
+  name: 'deploy-${cafName}-appinsights'
+  params: {
+    name: '${cafName}-appinsights'
+    location: location
+    tags: mergedTags
+    applicationType: 'web'
+  }
 }
 
 // Reference to existing ACR (if provided)
-resource existingAcr 'Microsoft.ContainerRegistry/registries@2023-07-01' existing = if (useExistingAcr) {
-  name: existingAcrName
-  scope: resourceGroup(
-    existingAcrSubscriptionId != '' ? existingAcrSubscriptionId : subscription().subscriptionId,
-    existingAcrResourceGroup
-  )
+module acr 'br:acrskpmgtcrprdusw2001.azurecr.io/bicep/container-registry:v1.0.0' = {
+  name: 'deploy-${cafName}-acr'
+  params: {
+    name: 'acr${projectName}${environment}${regionCode}${instanceNumber}'
+    location: location
+    tags: mergedTags
+    sku: 'Basic'
+  }
 }
 
 // Storage Account for time-logger CronJob
@@ -169,8 +280,8 @@ module aksCluster 'br:acrskpmgtcrprdusw2001.azurecr.io/bicep/aks-cluster:v1.1.0'
     tags: mergedTags
     kubernetesVersion: kubernetesVersion
     skuTier: environment == 'prd' ? 'Standard' : 'Free'
-    enableSystemAssignedIdentity: !useExistingIdentity
-    userAssignedIdentityResourceId: useExistingIdentity ? existingIdentity.id : ''
+    enableSystemAssignedIdentity: false
+    userAssignedIdentityResourceId: userAssignedIdentity.outputs.resourceId
     primaryAgentPoolProfiles: [
       {
         name: 'systempool'
@@ -190,23 +301,15 @@ module aksCluster 'br:acrskpmgtcrprdusw2001.azurecr.io/bicep/aks-cluster:v1.1.0'
     networkPolicy: 'azure'
     loadBalancerSku: 'standard'
     enableContainerInsights: true
-    monitoringWorkspaceResourceId: useExistingLogAnalytics ? existingLogAnalytics.id : logAnalytics.outputs.resourceId
+    monitoringWorkspaceResourceId: logAnalytics.outputs.resourceId
     enableAzureRBAC: true
     enableAadAuthentication: true
     disableLocalAccounts: environment == 'prd'
   }
 }
 
-output aksClusterName string = aksCluster.outputs.name
-output aksClusterFqdn string = aksCluster.outputs.controlPlaneFQDN
-output logAnalyticsWorkspaceId string = useExistingLogAnalytics
-  ? existingLogAnalytics!.id
-  : logAnalytics.outputs.resourceId
-output appInsightsName string = useExistingAppInsights ? existingAppInsights!.name : ''
-output appInsightsInstrumentationKey string = useExistingAppInsights
-  ? existingAppInsights!.properties.InstrumentationKey
-  : ''
-output storageAccountName string = storageAccount.outputs.name
-output storageAccountId string = storageAccount.outputs.resourceId
-output acrLoginServer string = useExistingAcr ? existingAcr!.properties.loginServer : ''
-output acrName string = useExistingAcr ? existingAcr!.name : ''
+output aksClusterName string = aksLza.outputs.name
+output aksClusterFqdn string = aksLza.outputs.controlPlaneFQDN
+output logAnalyticsWorkspaceId string = monitoring.outputs.logAnalyticsWorkspaceId
+output acrLoginServer string = acr.outputs.loginServer
+output acrName string = acr.outputs.name
