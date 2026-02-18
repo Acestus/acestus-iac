@@ -1,0 +1,262 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.40.2.10011",
+      "templateHash": "2436134307747500372"
+    },
+    "name": "Acestus Action Group",
+    "description": "Action Group module with Acestus monitoring standards",
+    "version": "1.0.0"
+  },
+  "parameters": {
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the action group"
+      }
+    },
+    "shortName": {
+      "type": "string",
+      "maxLength": 12,
+      "metadata": {
+        "description": "Short name for the action group (max 12 characters)"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "global",
+      "metadata": {
+        "description": "Location for the action group (use global for action groups)"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags to apply to the resource"
+      }
+    },
+    "enabled": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Enable the action group"
+      }
+    },
+    "emailReceivers": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Email receivers configuration"
+      }
+    },
+    "smsReceivers": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "SMS receivers configuration"
+      }
+    },
+    "webhookReceivers": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Webhook receivers configuration"
+      }
+    },
+    "azureAppPushReceivers": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Azure app push receivers configuration"
+      }
+    },
+    "itsmReceivers": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "ITSM receivers configuration"
+      }
+    },
+    "automationRunbookReceivers": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Automation runbook receivers configuration"
+      }
+    },
+    "voiceReceivers": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Voice receivers configuration"
+      }
+    },
+    "logicAppReceivers": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Logic app receivers configuration"
+      }
+    },
+    "azureFunctionReceivers": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Azure function receivers configuration"
+      }
+    },
+    "armRoleReceivers": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "ARM role receivers configuration"
+      }
+    },
+    "eventHubReceivers": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Event hub receivers configuration"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Insights/actionGroups",
+      "apiVersion": "2023-09-01-preview",
+      "name": "[parameters('name')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "copy": [
+          {
+            "name": "emailReceivers",
+            "count": "[length(parameters('emailReceivers'))]",
+            "input": {
+              "name": "[parameters('emailReceivers')[copyIndex('emailReceivers')].name]",
+              "emailAddress": "[parameters('emailReceivers')[copyIndex('emailReceivers')].emailAddress]",
+              "useCommonAlertSchema": "[coalesce(tryGet(parameters('emailReceivers')[copyIndex('emailReceivers')], 'useCommonAlertSchema'), true())]"
+            }
+          },
+          {
+            "name": "smsReceivers",
+            "count": "[length(parameters('smsReceivers'))]",
+            "input": {
+              "name": "[parameters('smsReceivers')[copyIndex('smsReceivers')].name]",
+              "countryCode": "[parameters('smsReceivers')[copyIndex('smsReceivers')].countryCode]",
+              "phoneNumber": "[parameters('smsReceivers')[copyIndex('smsReceivers')].phoneNumber]"
+            }
+          },
+          {
+            "name": "webhookReceivers",
+            "count": "[length(parameters('webhookReceivers'))]",
+            "input": {
+              "name": "[parameters('webhookReceivers')[copyIndex('webhookReceivers')].name]",
+              "serviceUri": "[parameters('webhookReceivers')[copyIndex('webhookReceivers')].serviceUri]",
+              "useCommonAlertSchema": "[coalesce(tryGet(parameters('webhookReceivers')[copyIndex('webhookReceivers')], 'useCommonAlertSchema'), true())]",
+              "useAadAuth": "[coalesce(tryGet(parameters('webhookReceivers')[copyIndex('webhookReceivers')], 'useAadAuth'), false())]",
+              "objectId": "[coalesce(tryGet(parameters('webhookReceivers')[copyIndex('webhookReceivers')], 'objectId'), null())]",
+              "identifierUri": "[coalesce(tryGet(parameters('webhookReceivers')[copyIndex('webhookReceivers')], 'identifierUri'), null())]",
+              "tenantId": "[coalesce(tryGet(parameters('webhookReceivers')[copyIndex('webhookReceivers')], 'tenantId'), null())]"
+            }
+          },
+          {
+            "name": "azureAppPushReceivers",
+            "count": "[length(parameters('azureAppPushReceivers'))]",
+            "input": {
+              "name": "[parameters('azureAppPushReceivers')[copyIndex('azureAppPushReceivers')].name]",
+              "emailAddress": "[parameters('azureAppPushReceivers')[copyIndex('azureAppPushReceivers')].emailAddress]"
+            }
+          },
+          {
+            "name": "automationRunbookReceivers",
+            "count": "[length(parameters('automationRunbookReceivers'))]",
+            "input": {
+              "name": "[parameters('automationRunbookReceivers')[copyIndex('automationRunbookReceivers')].name]",
+              "automationAccountId": "[parameters('automationRunbookReceivers')[copyIndex('automationRunbookReceivers')].automationAccountId]",
+              "runbookName": "[parameters('automationRunbookReceivers')[copyIndex('automationRunbookReceivers')].runbookName]",
+              "webhookResourceId": "[parameters('automationRunbookReceivers')[copyIndex('automationRunbookReceivers')].webhookResourceId]",
+              "isGlobalRunbook": "[coalesce(tryGet(parameters('automationRunbookReceivers')[copyIndex('automationRunbookReceivers')], 'isGlobalRunbook'), false())]",
+              "serviceUri": "[coalesce(tryGet(parameters('automationRunbookReceivers')[copyIndex('automationRunbookReceivers')], 'serviceUri'), null())]",
+              "useCommonAlertSchema": "[coalesce(tryGet(parameters('automationRunbookReceivers')[copyIndex('automationRunbookReceivers')], 'useCommonAlertSchema'), true())]"
+            }
+          },
+          {
+            "name": "voiceReceivers",
+            "count": "[length(parameters('voiceReceivers'))]",
+            "input": {
+              "name": "[parameters('voiceReceivers')[copyIndex('voiceReceivers')].name]",
+              "countryCode": "[parameters('voiceReceivers')[copyIndex('voiceReceivers')].countryCode]",
+              "phoneNumber": "[parameters('voiceReceivers')[copyIndex('voiceReceivers')].phoneNumber]"
+            }
+          },
+          {
+            "name": "logicAppReceivers",
+            "count": "[length(parameters('logicAppReceivers'))]",
+            "input": {
+              "name": "[parameters('logicAppReceivers')[copyIndex('logicAppReceivers')].name]",
+              "resourceId": "[parameters('logicAppReceivers')[copyIndex('logicAppReceivers')].resourceId]",
+              "callbackUrl": "[parameters('logicAppReceivers')[copyIndex('logicAppReceivers')].callbackUrl]",
+              "useCommonAlertSchema": "[coalesce(tryGet(parameters('logicAppReceivers')[copyIndex('logicAppReceivers')], 'useCommonAlertSchema'), true())]"
+            }
+          },
+          {
+            "name": "azureFunctionReceivers",
+            "count": "[length(parameters('azureFunctionReceivers'))]",
+            "input": {
+              "name": "[parameters('azureFunctionReceivers')[copyIndex('azureFunctionReceivers')].name]",
+              "functionAppResourceId": "[parameters('azureFunctionReceivers')[copyIndex('azureFunctionReceivers')].functionAppResourceId]",
+              "functionName": "[parameters('azureFunctionReceivers')[copyIndex('azureFunctionReceivers')].functionName]",
+              "httpTriggerUrl": "[parameters('azureFunctionReceivers')[copyIndex('azureFunctionReceivers')].httpTriggerUrl]",
+              "useCommonAlertSchema": "[coalesce(tryGet(parameters('azureFunctionReceivers')[copyIndex('azureFunctionReceivers')], 'useCommonAlertSchema'), true())]"
+            }
+          },
+          {
+            "name": "armRoleReceivers",
+            "count": "[length(parameters('armRoleReceivers'))]",
+            "input": {
+              "name": "[parameters('armRoleReceivers')[copyIndex('armRoleReceivers')].name]",
+              "roleId": "[parameters('armRoleReceivers')[copyIndex('armRoleReceivers')].roleId]",
+              "useCommonAlertSchema": "[coalesce(tryGet(parameters('armRoleReceivers')[copyIndex('armRoleReceivers')], 'useCommonAlertSchema'), true())]"
+            }
+          },
+          {
+            "name": "eventHubReceivers",
+            "count": "[length(parameters('eventHubReceivers'))]",
+            "input": {
+              "name": "[parameters('eventHubReceivers')[copyIndex('eventHubReceivers')].name]",
+              "subscriptionId": "[coalesce(tryGet(parameters('eventHubReceivers')[copyIndex('eventHubReceivers')], 'subscriptionId'), subscription().subscriptionId)]",
+              "eventHubNameSpace": "[parameters('eventHubReceivers')[copyIndex('eventHubReceivers')].eventHubNameSpace]",
+              "eventHubName": "[parameters('eventHubReceivers')[copyIndex('eventHubReceivers')].eventHubName]",
+              "useCommonAlertSchema": "[coalesce(tryGet(parameters('eventHubReceivers')[copyIndex('eventHubReceivers')], 'useCommonAlertSchema'), true())]",
+              "tenantId": "[coalesce(tryGet(parameters('eventHubReceivers')[copyIndex('eventHubReceivers')], 'tenantId'), subscription().tenantId)]"
+            }
+          }
+        ],
+        "groupShortName": "[parameters('shortName')]",
+        "enabled": "[parameters('enabled')]",
+        "itsmReceivers": "[parameters('itsmReceivers')]"
+      }
+    }
+  ],
+  "outputs": {
+    "resourceId": {
+      "type": "string",
+      "metadata": {
+        "description": "The resource ID of the action group"
+      },
+      "value": "[resourceId('Microsoft.Insights/actionGroups', parameters('name'))]"
+    },
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the action group"
+      },
+      "value": "[parameters('name')]"
+    }
+  }
+}

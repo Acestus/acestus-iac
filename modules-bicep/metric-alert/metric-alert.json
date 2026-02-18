@@ -1,0 +1,174 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.40.2.10011",
+      "templateHash": "429167194159592924"
+    },
+    "name": "Acestus Metric Alert",
+    "description": "Metric Alert module with Acestus monitoring standards",
+    "version": "1.0.0"
+  },
+  "parameters": {
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the metric alert"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "global",
+      "metadata": {
+        "description": "Location for the metric alert (use global)"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags to apply to the resource"
+      }
+    },
+    "alertDescription": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Description of the alert rule"
+      }
+    },
+    "severity": {
+      "type": "int",
+      "defaultValue": 2,
+      "allowedValues": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "metadata": {
+        "description": "Severity of the alert (0 = Critical, 1 = Error, 2 = Warning, 3 = Informational, 4 = Verbose)"
+      }
+    },
+    "enabled": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Enable the alert rule"
+      }
+    },
+    "scopes": {
+      "type": "array",
+      "metadata": {
+        "description": "Resource IDs to scope the alert to"
+      }
+    },
+    "evaluationFrequency": {
+      "type": "string",
+      "defaultValue": "PT5M",
+      "metadata": {
+        "description": "How often to evaluate the alert (ISO 8601 duration)"
+      }
+    },
+    "windowSize": {
+      "type": "string",
+      "defaultValue": "PT15M",
+      "metadata": {
+        "description": "Time window to aggregate metrics (ISO 8601 duration)"
+      }
+    },
+    "targetResourceType": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Target resource type for cross-resource alerts"
+      }
+    },
+    "targetResourceRegion": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Target resource region for cross-resource alerts"
+      }
+    },
+    "criteria": {
+      "type": "object",
+      "metadata": {
+        "description": "Alert criteria configuration"
+      }
+    },
+    "actionGroupIds": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Action group resource IDs to notify"
+      }
+    },
+    "autoMitigate": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Auto-mitigate the alert"
+      }
+    },
+    "customProperties": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Custom properties to include in the alert"
+      }
+    }
+  },
+  "variables": {
+    "copy": [
+      {
+        "name": "actions",
+        "count": "[length(parameters('actionGroupIds'))]",
+        "input": {
+          "actionGroupId": "[parameters('actionGroupIds')[copyIndex('actions')]]"
+        }
+      }
+    ]
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Insights/metricAlerts",
+      "apiVersion": "2018-03-01",
+      "name": "[parameters('name')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "description": "[parameters('alertDescription')]",
+        "severity": "[parameters('severity')]",
+        "enabled": "[parameters('enabled')]",
+        "scopes": "[parameters('scopes')]",
+        "evaluationFrequency": "[parameters('evaluationFrequency')]",
+        "windowSize": "[parameters('windowSize')]",
+        "targetResourceType": "[if(not(empty(parameters('targetResourceType'))), parameters('targetResourceType'), null())]",
+        "targetResourceRegion": "[if(not(empty(parameters('targetResourceRegion'))), parameters('targetResourceRegion'), null())]",
+        "criteria": "[parameters('criteria')]",
+        "actions": "[variables('actions')]",
+        "autoMitigate": "[parameters('autoMitigate')]"
+      }
+    }
+  ],
+  "outputs": {
+    "resourceId": {
+      "type": "string",
+      "metadata": {
+        "description": "The resource ID of the metric alert"
+      },
+      "value": "[resourceId('Microsoft.Insights/metricAlerts', parameters('name'))]"
+    },
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the metric alert"
+      },
+      "value": "[parameters('name')]"
+    }
+  }
+}

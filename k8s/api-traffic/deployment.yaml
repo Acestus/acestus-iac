@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-traffic
+  labels:
+    app: api-traffic
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: api-traffic
+  template:
+    metadata:
+      labels:
+        app: api-traffic
+    spec:
+      containers:
+        - name: api-traffic
+          image: <your-acr>.azurecr.io/api-traffic:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Production"
+            - name: DOTNET_RUNNING_IN_CONTAINER
+              value: "true"
+            - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+              value: "<your-app-insights-connection-string>"

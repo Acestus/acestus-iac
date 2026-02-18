@@ -1,0 +1,202 @@
+name: Publish Bicep Modules
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "bicep/modules/**"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Module version to publish (e.g., v1.0.0)"
+        required: true
+        default: "v1.0.0"
+      module_name:
+        description: "Specific module to publish (leave empty for all)"
+        required: false
+
+env:
+  ACR_NAME: <your-acr-name> # e.g., acrmodulesprdusw2001
+  AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      changed_modules: ${{ steps.changes.outputs.modules }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            # Auto-generate version based on date for push events
+            VERSION="v$(date +'%Y.%m.%d')-$(echo ${{ github.sha }} | cut -c1-7)"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Detect changed modules
+        id: changes
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.module_name }}" ]; then
+            # Specific module requested
+            echo "modules=${{ github.event.inputs.module_name }}" >> $GITHUB_OUTPUT
+          else
+            # Detect changed modules
+            changed_files=$(git diff --name-only HEAD~1 HEAD -- bicep/modules/ || echo "")
+            if [ -z "$changed_files" ]; then
+              echo "modules=" >> $GITHUB_OUTPUT
+            else
+              modules=$(echo "$changed_files" | grep '^bicep/modules/' | cut -d'/' -f3 | sort -u | tr '\n' ' ' | sed 's/[[:space:]]*$//')
+              echo "modules=$modules" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+  test-modules:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.changed_modules != ''
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module: ${{ fromJson(format('["{0}"]', replace(needs.detect-changes.outputs.changed_modules, ' ', '","'))) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Azure CLI
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Install Bicep CLI
+        run: |
+          curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
+          chmod +x ./bicep
+          sudo mv ./bicep /usr/local/bin/bicep
+          bicep --help
+
+      - name: Test module syntax
+        run: |
+          echo "Testing module: ${{ matrix.module }}"
+          MODULE_FILE="bicep/modules/${{ matrix.module }}/${{ matrix.module }}.bicep"
+          if [ ! -f "$MODULE_FILE" ]; then
+            echo "Module file not found: $MODULE_FILE"
+            exit 1
+          fi
+          bicep build "$MODULE_FILE" --stdout > /dev/null
+          echo "✅ Module syntax validation passed"
+
+      - name: Test module linting
+        run: |
+          MODULE_FILE="bicep/modules/${{ matrix.module }}/${{ matrix.module }}.bicep"
+          bicep build "$MODULE_FILE" --stdout > /dev/null 2>&1
+          echo "✅ Module linting passed"
+
+  publish-modules:
+    needs: [detect-changes, test-modules]
+    if: needs.detect-changes.outputs.changed_modules != ''
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module: ${{ fromJson(format('["{0}"]', replace(needs.detect-changes.outputs.changed_modules, ' ', '","'))) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Azure CLI
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Install Bicep CLI
+        run: |
+          curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
+          chmod +x ./bicep
+          sudo mv ./bicep /usr/local/bin/bicep
+          bicep --version
+
+      - name: Login to ACR
+        run: |
+          az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Publish module
+        run: |
+          MODULE_NAME="${{ matrix.module }}"
+          VERSION="${{ needs.detect-changes.outputs.version }}"
+          MODULE_FILE="bicep/modules/$MODULE_NAME/$MODULE_NAME.bicep"
+
+          echo "📦 Publishing module: $MODULE_NAME"
+          echo "📋 Version: $VERSION"
+          echo "📄 File: $MODULE_FILE"
+
+          if [ ! -f "$MODULE_FILE" ]; then
+            echo "❌ Module file not found: $MODULE_FILE"
+            exit 1
+          fi
+
+          TARGET_REFERENCE="br:${{ env.ACR_NAME }}.azurecr.io/bicep/modules/$MODULE_NAME:$VERSION"
+          echo "🎯 Target: $TARGET_REFERENCE"
+
+          bicep publish "$MODULE_FILE" --target "$TARGET_REFERENCE"
+
+          echo "✅ Module $MODULE_NAME published successfully!"
+
+      - name: Verify publication
+        run: |
+          MODULE_NAME="${{ matrix.module }}"
+          VERSION="${{ needs.detect-changes.outputs.version }}"
+
+          # Wait a moment for ACR to process
+          sleep 10
+
+          # Verify the module was published
+          az acr repository show-tags \
+            --name ${{ env.ACR_NAME }} \
+            --repository "bicep/modules/$MODULE_NAME" \
+            --output table
+
+          echo "📊 Module publication verified!"
+
+  summary:
+    needs: [detect-changes, publish-modules]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Deployment Summary
+        run: |
+          echo "## 📦 Bicep Module Publication Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.detect-changes.outputs.changed_modules }}" = "" ]; then
+            echo "🔍 **No module changes detected**" >> $GITHUB_STEP_SUMMARY
+            echo "No modules were published in this run." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "📋 **Published Modules:**" >> $GITHUB_STEP_SUMMARY
+            echo "- **Version:** ${{ needs.detect-changes.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **Registry:** ${{ env.ACR_NAME }}.azurecr.io" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            echo "**Modules:**" >> $GITHUB_STEP_SUMMARY
+            for module in ${{ needs.detect-changes.outputs.changed_modules }}; do
+              echo "- \`$module\`" >> $GITHUB_STEP_SUMMARY
+            done
+
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Usage Example:**" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`bicep" >> $GITHUB_STEP_SUMMARY
+            echo "module example 'br:${{ env.ACR_NAME }}.azurecr.io/bicep/modules/MODULE_NAME:${{ needs.detect-changes.outputs.version }}' = {" >> $GITHUB_STEP_SUMMARY
+            echo "  name: 'exampleDeployment'" >> $GITHUB_STEP_SUMMARY
+            echo "  params: {" >> $GITHUB_STEP_SUMMARY
+            echo "    // module parameters" >> $GITHUB_STEP_SUMMARY
+            echo "  }" >> $GITHUB_STEP_SUMMARY
+            echo "}" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi

@@ -1,0 +1,205 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.40.2.10011",
+      "templateHash": "3005926684382985202"
+    },
+    "name": "Acestus Container Registry",
+    "description": "Azure Container Registry module with Acestus security defaults",
+    "version": "1.0.0"
+  },
+  "parameters": {
+    "name": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 50,
+      "metadata": {
+        "description": "Name of the container registry (must be globally unique, 5-50 alphanumeric characters)"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for the container registry"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags to apply to the resource"
+      }
+    },
+    "sku": {
+      "type": "string",
+      "defaultValue": "Premium",
+      "allowedValues": [
+        "Basic",
+        "Standard",
+        "Premium"
+      ],
+      "metadata": {
+        "description": "SKU for the container registry"
+      }
+    },
+    "adminUserEnabled": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Enable admin user for the registry"
+      }
+    },
+    "publicNetworkAccess": {
+      "type": "string",
+      "defaultValue": "Disabled",
+      "metadata": {
+        "description": "Enable public network access"
+      }
+    },
+    "zoneRedundancy": {
+      "type": "string",
+      "defaultValue": "Disabled",
+      "metadata": {
+        "description": "Enable zone redundancy (Premium SKU only)"
+      }
+    },
+    "dataEndpointEnabled": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Enable data endpoint (Premium SKU only)"
+      }
+    },
+    "networkRuleBypassOptions": {
+      "type": "string",
+      "defaultValue": "AzureServices",
+      "allowedValues": [
+        "AzureServices",
+        "None"
+      ],
+      "metadata": {
+        "description": "Network rule bypass options"
+      }
+    },
+    "ipRules": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "IP rules for network access"
+      }
+    },
+    "encryption": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Encryption configuration with customer managed key"
+      }
+    },
+    "anonymousPullEnabled": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Enable anonymous pull access"
+      }
+    },
+    "retentionPolicyDays": {
+      "type": "int",
+      "defaultValue": 30,
+      "metadata": {
+        "description": "Retention policy for untagged manifests (Premium SKU only)"
+      }
+    },
+    "retentionPolicyEnabled": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Enable retention policy"
+      }
+    },
+    "softDeletePolicyDays": {
+      "type": "int",
+      "defaultValue": 7,
+      "metadata": {
+        "description": "Enable soft delete (Premium SKU only)"
+      }
+    },
+    "softDeletePolicyEnabled": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Enable soft delete policy"
+      }
+    },
+    "managedIdentities": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "User assigned identities"
+      }
+    }
+  },
+  "variables": {
+    "identityType": "[if(not(empty(parameters('managedIdentities'))), if(and(contains(parameters('managedIdentities'), 'systemAssigned'), parameters('managedIdentities').systemAssigned), if(not(empty(coalesce(parameters('managedIdentities').userAssignedResourceIds, createArray()))), 'SystemAssigned, UserAssigned', 'SystemAssigned'), if(not(empty(coalesce(parameters('managedIdentities').userAssignedResourceIds, createArray()))), 'UserAssigned', 'None')), 'None')]",
+    "userAssignedIdentities": "[if(not(empty(coalesce(tryGet(parameters('managedIdentities'), 'userAssignedResourceIds'), createArray()))), reduce(parameters('managedIdentities').userAssignedResourceIds, createObject(), lambda('cur', 'next', union(lambdaVariables('cur'), createObject(format('{0}', lambdaVariables('next')), createObject())))), null())]",
+    "policies": "[if(equals(parameters('sku'), 'Premium'), createObject('retentionPolicy', createObject('days', parameters('retentionPolicyDays'), 'status', if(parameters('retentionPolicyEnabled'), 'enabled', 'disabled')), 'softDeletePolicy', createObject('retentionDays', parameters('softDeletePolicyDays'), 'status', if(parameters('softDeletePolicyEnabled'), 'enabled', 'disabled'))), createObject())]",
+    "networkRuleSet": "[if(and(equals(parameters('sku'), 'Premium'), not(empty(parameters('ipRules')))), createObject('defaultAction', 'Deny', 'ipRules', parameters('ipRules')), null())]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.ContainerRegistry/registries",
+      "apiVersion": "2023-11-01-preview",
+      "name": "[parameters('name')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "sku": {
+        "name": "[parameters('sku')]"
+      },
+      "identity": "[if(not(equals(variables('identityType'), 'None')), createObject('type', variables('identityType'), 'userAssignedIdentities', variables('userAssignedIdentities')), null())]",
+      "properties": {
+        "adminUserEnabled": "[parameters('adminUserEnabled')]",
+        "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
+        "zoneRedundancy": "[if(equals(parameters('sku'), 'Premium'), parameters('zoneRedundancy'), 'Disabled')]",
+        "dataEndpointEnabled": "[if(equals(parameters('sku'), 'Premium'), parameters('dataEndpointEnabled'), false())]",
+        "networkRuleBypassOptions": "[parameters('networkRuleBypassOptions')]",
+        "networkRuleSet": "[variables('networkRuleSet')]",
+        "encryption": "[if(not(empty(parameters('encryption'))), parameters('encryption'), null())]",
+        "anonymousPullEnabled": "[parameters('anonymousPullEnabled')]",
+        "policies": "[variables('policies')]"
+      }
+    }
+  ],
+  "outputs": {
+    "resourceId": {
+      "type": "string",
+      "metadata": {
+        "description": "The resource ID of the container registry"
+      },
+      "value": "[resourceId('Microsoft.ContainerRegistry/registries', parameters('name'))]"
+    },
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the container registry"
+      },
+      "value": "[parameters('name')]"
+    },
+    "loginServer": {
+      "type": "string",
+      "metadata": {
+        "description": "The login server URL"
+      },
+      "value": "[reference(resourceId('Microsoft.ContainerRegistry/registries', parameters('name')), '2023-11-01-preview').loginServer]"
+    },
+    "systemAssignedMIPrincipalId": {
+      "type": "string",
+      "metadata": {
+        "description": "The principal ID of the system assigned identity"
+      },
+      "value": "[coalesce(tryGet(reference(resourceId('Microsoft.ContainerRegistry/registries', parameters('name')), '2023-11-01-preview', 'full').identity, 'principalId'), '')]"
+    }
+  }
+}

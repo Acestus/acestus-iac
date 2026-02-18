@@ -1,0 +1,58 @@
+name: 'rg-dns-dev-usw2'
+
+on:
+  push:
+    branches:
+    - wweeks
+
+jobs:
+  terraform:
+    name: 'Terraform'
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_AD_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.AZURE_AD_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_AD_TENANT_ID }}
+      location: ${{ vars.LOCATION }}
+      ResourceEnvironment: ${{ vars.ResourceEnvironment }}
+      subscription_id: ${{ vars.subscription_id }}
+      TF_VERSION: 1.12.2
+    runs-on: ubuntu-latest
+    environment: dev
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: 'Terraform Init'
+      uses: hashicorp/terraform-github-actions@master
+      with:
+        tf_actions_version: ${{ env.TF_VERSION }}
+        tf_actions_subcommand: 'init'
+        tf_actions_working_dir: "./terraform-infra/dev/rg-dns-dev-usw2"
+
+    - name: 'Terraform Validate'
+      uses: hashicorp/terraform-github-actions@master
+      with:
+        tf_actions_version: ${{ env.TF_VERSION }}
+        tf_actions_subcommand: 'validate'
+        tf_actions_working_dir: "./terraform-infra/dev/rg-dns-dev-usw2"
+
+    - name: 'Terraform Plan'
+      uses: hashicorp/terraform-github-actions@master
+      with:
+        tf_actions_version: ${{ env.TF_VERSION }}
+        tf_actions_subcommand: 'plan'
+        tf_actions_working_dir: "./terraform-infra/dev/rg-dns-dev-usw2"
+
+    - name: Terraform Apply
+      uses: hashicorp/terraform-github-actions@master
+      with:
+        tf_actions_version: ${{ env.TF_VERSION }}
+        tf_actions_subcommand: 'apply'
+        tf_actions_working_dir: "./terraform-infra/dev/rg-dns-dev-usw2"

@@ -1,0 +1,185 @@
+name: Reusable push to prd (dotnet)
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        default: prd
+      resource_group_name:
+        type: string
+        required: true
+      stack_name:
+        type: string
+        required: true
+      template_file:
+        type: string
+        default: infrastructure/main.bicep
+      params_file:
+        type: string
+        default: infrastructure/main.prd.bicepparam
+      infra_path_prefix:
+        type: string
+        default: infrastructure/
+      force_infra:
+        type: boolean
+        default: false
+      functions_json:
+        type: string
+        default: '[]'
+      dotnet_version:
+        type: string
+        default: '8.0'
+      azure_client_id:
+        type: string
+        required: true
+      azure_tenant_id:
+        type: string
+        required: true
+      azure_subscription_id:
+        type: string
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    environment: ${{ inputs.environment }}
+
+    env:
+      RESOURCE_GROUP_NAME: ${{ inputs.resource_group_name }}
+      TEMPLATE_FILE: ${{ inputs.template_file }}
+      PARAMS_FILE: ${{ inputs.params_file }}
+      INFRA_PATH_PREFIX: ${{ inputs.infra_path_prefix }}
+      STACK_NAME: ${{ inputs.stack_name }}
+      FUNCTIONS_JSON: ${{ inputs.functions_json }}
+      FORCE_INFRA: ${{ inputs.force_infra }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Login with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ inputs.azure_client_id }}
+          tenant-id: ${{ inputs.azure_tenant_id }}
+          subscription-id: ${{ inputs.azure_subscription_id }}
+          auth-type: SERVICE_PRINCIPAL
+          audience: api://AzureADTokenExchange
+
+      - name: Check for infrastructure changes
+        id: infra_changes
+        run: |
+          if [ "${FORCE_INFRA}" = "true" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          elif git diff --name-only HEAD~1 HEAD | grep -q "^${INFRA_PATH_PREFIX}"; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy Bicep template
+        if: steps.infra_changes.outputs.changed == 'true'
+        run: |
+          az stack group create \
+            --name "$STACK_NAME" \
+            --resource-group "$RESOURCE_GROUP_NAME" \
+            --template-file "$TEMPLATE_FILE" \
+            --parameters "$PARAMS_FILE" \
+            --action-on-unmanage deleteResources \
+            --deny-settings-mode none \
+            --yes
+
+      - name: Setup .NET
+        if: ${{ inputs.functions_json != '[]' }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ inputs.dotnet_version }}
+
+      - name: Cache Azure Functions Core Tools
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-func-tools-4
+
+      - name: Setup Azure Functions Core Tools
+        run: |
+          npm install -g azure-functions-core-tools@4 --unsafe-perm true
+
+      - name: Deploy Azure Function Apps (dotnet)
+        if: ${{ inputs.functions_json != '[]' }}
+        shell: bash
+        run: |
+          FUNCTIONS='${{ inputs.functions_json }}'
+          FAILED=0
+
+          for row in $(echo "${FUNCTIONS}" | jq -r '.[] | @base64'); do
+            _jq() {
+              echo ${row} | base64 --decode | jq -r "${1}"
+            }
+
+            FN_PATH=$(_jq '.path')
+            FN_NAME=$(_jq '.name')
+            FN_RUNTIME=$(_jq '.runtime // "dotnet-isolated"')
+
+            echo "Building and deploying function: $FN_NAME"
+
+            # Find .csproj or .fsproj files
+            PROJECT_FILE=$(find "$FN_PATH" -maxdepth 2 -name "*.csproj" -o -name "*.fsproj" | head -1)
+
+            if [ -z "$PROJECT_FILE" ]; then
+              echo "❌ No project file found for $FN_NAME"
+              FAILED=1
+              continue
+            fi
+
+            PROJECT_DIR=$(dirname "$PROJECT_FILE")
+
+            # Build and publish the function
+            echo "Building $FN_NAME..."
+            if ! dotnet publish "$PROJECT_FILE" --configuration Release --output "$PROJECT_DIR/publish"; then
+              echo "❌ Build failed for $FN_NAME"
+              FAILED=1
+              continue
+            fi
+
+            # Deploy using func CLI
+            echo "Deploying $FN_NAME..."
+            cd "$PROJECT_DIR/publish"
+            
+            # Add --dotnet-isolated flag for isolated worker runtime
+            if [ "$FN_RUNTIME" = "dotnet-isolated" ]; then
+              OUTPUT=$(func azure functionapp publish "$FN_NAME" --dotnet-isolated 2>&1) || true
+            else
+              OUTPUT=$(func azure functionapp publish "$FN_NAME" 2>&1) || true
+            fi
+            echo "$OUTPUT"
+
+            if echo "$OUTPUT" | grep -q "Deployment completed successfully"; then
+              if echo "$OUTPUT" | grep -q "Error calling sync triggers"; then
+                echo "⚠️ Sync triggers failed, but deployment completed successfully for $FN_NAME"
+              else
+                echo "✅ Deployment successful for $FN_NAME"
+              fi
+            else
+              echo "❌ Deployment failed for $FN_NAME"
+              FAILED=1
+            fi
+
+            cd - > /dev/null
+          done
+
+          if [ $FAILED -eq 1 ]; then
+            echo "One or more function deployments failed"
+            exit 1
+          fi

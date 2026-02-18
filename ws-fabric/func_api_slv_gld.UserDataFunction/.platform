@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "UserDataFunction",
+    "displayName": "func_api_slv_gld"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "02a66e36-5d9e-b72c-48e3-30e46b1be57e"
+  }
+}

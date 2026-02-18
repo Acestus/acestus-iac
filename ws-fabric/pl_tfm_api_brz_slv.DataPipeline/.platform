@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "DataPipeline",
+    "displayName": "pl_tfm_api_brz_slv"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "9c959583-d39b-967f-4273-0404de800123"
+  }
+}

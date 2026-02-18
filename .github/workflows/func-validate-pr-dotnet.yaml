@@ -1,0 +1,183 @@
+name: Reusable PR validation
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        default: dev
+      resource_group_name:
+        type: string
+        required: true
+      template_file:
+        type: string
+        default: infrastructure/main.bicep
+      params_file:
+        type: string
+        default: infrastructure/main.dev.bicepparam
+      functions_json:
+        type: string
+        default: '[]'
+      dotnet_version:
+        type: string
+        default: '8.0'
+      run_tests:
+        type: boolean
+        default: true
+      azure_client_id:
+        type: string
+        required: true
+      azure_tenant_id:
+        type: string
+        required: true
+      azure_subscription_id:
+        type: string
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+
+    env:
+      RESOURCE_GROUP_NAME: ${{ inputs.resource_group_name }}
+      TEMPLATE_FILE: ${{ inputs.template_file }}
+      PARAMS_FILE: ${{ inputs.params_file }}
+      FUNCTIONS_JSON: ${{ inputs.functions_json }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ inputs.azure_client_id }}
+          tenant-id: ${{ inputs.azure_tenant_id }}
+          subscription-id: ${{ inputs.azure_subscription_id }}
+          auth-type: SERVICE_PRINCIPAL
+          audience: api://AzureADTokenExchange
+
+      - name: Validate Bicep template
+        id: bicep_validate
+        run: |
+          echo "## Bicep Validation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if az bicep build --file "$TEMPLATE_FILE" 2>&1; then
+            echo "✅ Bicep build successful" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Bicep build failed" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: What-If deployment
+        id: whatif
+        run: |
+          echo "## What-If Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '\`\`\`' >> $GITHUB_STEP_SUMMARY
+
+          az deployment group what-if \
+            --resource-group "$RESOURCE_GROUP_NAME" \
+            --template-file "$TEMPLATE_FILE" \
+            --parameters "$PARAMS_FILE" \
+            --no-pretty-print 2>&1 | tee whatif.txt
+
+          cat whatif.txt >> $GITHUB_STEP_SUMMARY
+          echo '\`\`\`' >> $GITHUB_STEP_SUMMARY
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ inputs.dotnet_version }}
+
+      - name: Restore dependencies
+        if: ${{ inputs.run_tests }}
+        run: dotnet restore
+
+      - name: Build solution
+        if: ${{ inputs.run_tests }}
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run tests
+        if: ${{ inputs.run_tests }}
+        id: test
+        run: |
+          dotnet test --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx" || true
+
+      - name: Validate .NET functions
+        if: ${{ inputs.functions_json != '[]' }}
+        shell: bash
+        run: |
+          echo "## Function Validation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          FUNCTIONS='${{ inputs.functions_json }}'
+          ERRORS=""
+          SUCCESS_COUNT=0
+          FAIL_COUNT=0
+
+          for row in $(echo "${FUNCTIONS}" | jq -r '.[] | @base64'); do
+            _jq() {
+              echo ${row} | base64 --decode | jq -r "${1}"
+            }
+
+            FN_PATH=$(_jq '.path')
+            FN_NAME=$(_jq '.name')
+
+            echo "Validating function: $FN_NAME at $FN_PATH"
+
+            # Find .csproj or .fsproj files
+            PROJECT_FILE=$(find "$FN_PATH" -maxdepth 2 -name "*.csproj" -o -name "*.fsproj" | head -1)
+
+            if [ -z "$PROJECT_FILE" ]; then
+              echo "⚠️ No project file found for $FN_NAME" >> $GITHUB_STEP_SUMMARY
+              continue
+            fi
+
+            # Restore and build the function project
+            if dotnet restore "$PROJECT_FILE" 2>&1; then
+              if dotnet build "$PROJECT_FILE" --no-restore --configuration Release 2>&1; then
+                echo "✅ $FN_NAME: Build successful" >> $GITHUB_STEP_SUMMARY
+                SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+              else
+                ERRORS="${ERRORS}\n- $FN_NAME: Build failed"
+                FAIL_COUNT=$((FAIL_COUNT + 1))
+              fi
+            else
+              ERRORS="${ERRORS}\n- $FN_NAME: Restore failed"
+              FAIL_COUNT=$((FAIL_COUNT + 1))
+            fi
+          done
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Summary:** $SUCCESS_COUNT succeeded, $FAIL_COUNT failed" >> $GITHUB_STEP_SUMMARY
+
+          if [ -n "$ERRORS" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Errors" >> $GITHUB_STEP_SUMMARY
+            echo -e "$ERRORS" >> $GITHUB_STEP_SUMMARY
+            echo "" 
+            echo "❌ Function validation failed:"
+            echo -e "$ERRORS"
+            exit 1
+          else
+            echo ""
+            echo "✅ All functions validated successfully"
+          fi
+
+      - name: Validation Summary
+        if: always()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "**Target:** ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY

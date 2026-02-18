@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "UserDataFunction",
+    "displayName": "func_api_brz_slv"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "d26dcbb3-ed67-a4fd-42de-c5c8514723fd"
+  }
+}

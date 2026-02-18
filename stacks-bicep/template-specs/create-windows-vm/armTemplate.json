@@ -1,0 +1,124 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "adminUsername": {
+            "type": "string",
+            "defaultValue": "Acestus",
+            "metadata": {
+                "description": "Username for the Virtual Machine."
+            }
+        },
+        "adminPassword": {
+            "type": "securestring",
+            "minLength": 12,
+            "metadata": {
+                "description": "Password for the Virtual Machine."
+            }
+        },
+        "OSVersion": {
+            "type": "string",
+            "defaultValue": "2022-Datacenter",
+            "allowedValues": [
+                "2019-Datacenter",
+                "2019-Datacenter-Core",
+                "2019-Datacenter-Core-with-Containers-smalldisk",
+                "2022-Datacenter",
+                "2022-Datacenter-Core",
+                "2022-Datacenter-Core-with-Containers-smalldisk"
+            ],
+            "metadata": {
+                "description": "The Windows version for the VM. This will pick a fully patched image of this given Windows version."
+            }
+        },
+        "SubnetID": {
+            "type": "string",
+            "defaultValue": "/subscriptions/<subscription-id>/resourceGroups/NetTools/providers/Microsoft.Network/virtualNetworks/vnet-nettools-usw2-001/subnets/default",
+            "metadata": {
+                "description": "Resource ID of the subnet."
+            }
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "projectName": "nettools",
+        "subscriptionName": "SBX-510-Infrastructure",
+        "workloadName1": "[substring(variables('subscriptionName'), 0, indexOf(variables('subscriptionName'), '-'))]",
+        "workloadName2": "[substring(variables('subscriptionName'), 4, indexOf(variables('subscriptionName'), '-'))]",
+        "workloadName": "[concat(variables('workloadName1'), variables('workloadName2'))]",
+        "uniqueNumbers": "[substring(uniqueString(resourceGroup().id, deployment().name), 0, 3)]",
+        "vmName": "[concat('vm-', variables('projectName'), '-', variables('workloadName'), '-usw2-', variables('uniqueNumbers'))]",
+        "VMSize": "Standard_D2s_v3",
+        "nicName": "[concat('nic-', variables('projectName'), '-', variables('workloadName'), '-usw2-', variables('uniqueNumbers'))]",
+        "shortComputerName": "[concat(variables('projectName'), '-', variables('uniqueNumbers'))]",
+        "osDiskName": "[concat('disk-', variables('projectName'), '-', variables('workloadName'), '-usw2-', variables('uniqueNumbers'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2020-06-01",
+            "name": "[variables('nicName')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[parameters('SubnetID')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2020-06-01",
+            "name": "[variables('VMName')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[variables('vmSize')]"
+                },
+                "osProfile": {
+                    "computerName": "[variables('shortComputerName')]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "[parameters('OSVersion')]",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "createOption": "FromImage",
+                        "name": "[variables('osDiskName')]",
+                        "managedDisk": {
+                            "storageAccountType": "StandardSSD_LRS"
+                        }
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "https://stnettoolsusw2001.blob.core.windows.net/"
+                    }
+                }
+            }
+        }
+    ]
+}

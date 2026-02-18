@@ -1,0 +1,110 @@
+# GitHub Actions workflow for Fabric Sync via kubectl - Production
+# Triggers when changes are pushed to main branch in ws-fabric/ directory
+# Checks out code and sends files directly to fabric-sync (no PAT needed)
+
+name: Fabric Sync - Production
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "ws-fabric/**"
+      - ".fabric/mappings-prd.json"
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID_PRD }}
+  AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  AKS_RESOURCE_GROUP: rg-timelogger-prd-usw2-001
+  AKS_CLUSTER_NAME: aks-timelogger-prd-usw2-001
+  ENVIRONMENT: prd
+
+jobs:
+  sync-fabric:
+    runs-on: ubuntu-latest
+    environment: prd
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ env.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get AKS Credentials
+        run: |
+          az aks get-credentials \
+            --resource-group ${{ env.AKS_RESOURCE_GROUP }} \
+            --name ${{ env.AKS_CLUSTER_NAME }} \
+            --overwrite-existing
+
+      - name: Build and send sync payload
+        run: |
+          echo "Building sync payload for ${{ env.ENVIRONMENT }} environment..."
+
+          # Build files object - include all relevant files from ws-fabric/
+          FILES_JSON=$(find ws-fabric -type f \( \
+            -name "*.json" -o \
+            -name "*.py" -o \
+            -name "*.platform" -o \
+            -name "*.tmdl" -o \
+            -name "*.pbism" \
+          \) | while read -r file; do
+            # Read file content and escape for JSON
+            content=$(cat "$file" | jq -Rs .)
+            echo "\"$file\": $content"
+          done | paste -sd ',' | sed 's/^/{/' | sed 's/$/}/')
+
+          # Load mappings
+          MAPPINGS=$(cat .fabric/mappings-${{ env.ENVIRONMENT }}.json)
+
+          # Build complete payload
+          PAYLOAD=$(jq -n \
+            --arg branch "main" \
+            --argjson files "$FILES_JSON" \
+            --argjson mappings "$MAPPINGS" \
+            '{branch: $branch, files: $files, mappings: $mappings}')
+
+          # Save payload to file
+          echo "$PAYLOAD" > /tmp/sync-payload.json
+          echo "Payload size: $(wc -c < /tmp/sync-payload.json) bytes"
+          echo "Files included: $(echo "$PAYLOAD" | jq '.files | keys | length')"
+
+          # Start port-forward in background (chiseled images have no shell/curl)
+          POD=$(kubectl get pods -l app=fabric-sync -o jsonpath='{.items[0].metadata.name}')
+          echo "Target pod: $POD"
+          kubectl port-forward $POD 8080:8080 &
+          PF_PID=$!
+          sleep 3
+
+          # Execute sync via port-forward
+          RESPONSE=$(curl -s -X POST http://localhost:8080/sync/${{ env.ENVIRONMENT }} \
+            -H "Content-Type: application/json" \
+            -d @/tmp/sync-payload.json)
+
+          # Clean up port-forward
+          kill $PF_PID 2>/dev/null || true
+
+          echo "Response:"
+          echo "$RESPONSE" | jq '.' 2>/dev/null || echo "$RESPONSE"
+
+          # Check for success
+          SUCCESS=$(echo "$RESPONSE" | jq -r '.summary.success // 0')
+          FAILED=$(echo "$RESPONSE" | jq -r '.summary.failed // 0')
+
+          echo "✅ Synced: $SUCCESS items"
+
+          if [ "$FAILED" -gt 0 ]; then
+            echo "::warning::$FAILED items failed to sync"
+            echo "$RESPONSE" | jq -r '.results[] | select(.success == false) | "  - \(.item): \(.message)"'
+          fi

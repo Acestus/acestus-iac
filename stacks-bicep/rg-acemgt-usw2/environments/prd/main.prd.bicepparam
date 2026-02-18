@@ -1,0 +1,13 @@
+using '../../main.bicep'
+
+param projectName = 'acemgt'
+param environment = 'prd'
+param CAFLocation = 'usw2'
+param instanceNumber = '001'
+
+param tags = {
+  ManagedBy: 'https://github.com/<your-org>/<your-repo>'
+  CreatedBy: '<your-username>'
+  Subscription: 'Management'
+  Project: 'Alerting'
+}

@@ -1,0 +1,380 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.40.2.10011",
+      "templateHash": "3803798730497542668"
+    },
+    "name": "Acestus PostgreSQL Flexible Server",
+    "description": "PostgreSQL Flexible Server module with Acestus security standards",
+    "version": "1.0.0"
+  },
+  "parameters": {
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the PostgreSQL server"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for the server"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags to apply to the resource"
+      }
+    },
+    "administratorLogin": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Administrator login name"
+      }
+    },
+    "administratorLoginPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Administrator login password"
+      }
+    },
+    "version": {
+      "type": "string",
+      "defaultValue": "16",
+      "allowedValues": [
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16"
+      ],
+      "metadata": {
+        "description": "PostgreSQL version"
+      }
+    },
+    "tier": {
+      "type": "string",
+      "defaultValue": "GeneralPurpose",
+      "allowedValues": [
+        "Burstable",
+        "GeneralPurpose",
+        "MemoryOptimized"
+      ],
+      "metadata": {
+        "description": "SKU tier"
+      }
+    },
+    "skuName": {
+      "type": "string",
+      "defaultValue": "Standard_D2s_v3",
+      "metadata": {
+        "description": "SKU name (e.g., Standard_D2s_v3)"
+      }
+    },
+    "storageSizeGB": {
+      "type": "int",
+      "defaultValue": 128,
+      "minValue": 32,
+      "maxValue": 32767,
+      "metadata": {
+        "description": "Storage size in GB"
+      }
+    },
+    "storageTier": {
+      "type": "string",
+      "defaultValue": "P10",
+      "allowedValues": [
+        "P4",
+        "P6",
+        "P10",
+        "P15",
+        "P20",
+        "P30",
+        "P40",
+        "P50",
+        "P60",
+        "P70",
+        "P80"
+      ],
+      "metadata": {
+        "description": "Storage tier"
+      }
+    },
+    "autoGrow": {
+      "type": "string",
+      "defaultValue": "Enabled",
+      "allowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "metadata": {
+        "description": "Enable storage auto grow"
+      }
+    },
+    "backupRetentionDays": {
+      "type": "int",
+      "defaultValue": 35,
+      "minValue": 7,
+      "maxValue": 35,
+      "metadata": {
+        "description": "Backup retention days"
+      }
+    },
+    "geoRedundantBackup": {
+      "type": "string",
+      "defaultValue": "Enabled",
+      "allowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "metadata": {
+        "description": "Enable geo-redundant backup"
+      }
+    },
+    "highAvailabilityMode": {
+      "type": "string",
+      "defaultValue": "ZoneRedundant",
+      "allowedValues": [
+        "Disabled",
+        "SameZone",
+        "ZoneRedundant"
+      ],
+      "metadata": {
+        "description": "High availability mode"
+      }
+    },
+    "standbyAvailabilityZone": {
+      "type": "string",
+      "defaultValue": "2",
+      "metadata": {
+        "description": "Standby availability zone"
+      }
+    },
+    "availabilityZone": {
+      "type": "string",
+      "defaultValue": "1",
+      "metadata": {
+        "description": "Availability zone"
+      }
+    },
+    "delegatedSubnetResourceId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Virtual network subnet resource ID for private access"
+      }
+    },
+    "privateDnsZoneResourceId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Private DNS zone resource ID"
+      }
+    },
+    "publicNetworkAccess": {
+      "type": "string",
+      "defaultValue": "Disabled",
+      "allowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "metadata": {
+        "description": "Public network access"
+      }
+    },
+    "firewallRules": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Firewall rules (only when publicNetworkAccess is Enabled)"
+      }
+    },
+    "databases": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Databases to create"
+      }
+    },
+    "configurations": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Server configurations"
+      }
+    },
+    "userAssignedIdentityId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "User assigned identity resource ID"
+      }
+    },
+    "enableEntraOnlyAuth": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Enable Microsoft Entra only authentication"
+      }
+    },
+    "entraAdminObjectId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Microsoft Entra admin object ID"
+      }
+    },
+    "entraAdminPrincipalName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Microsoft Entra admin principal name"
+      }
+    },
+    "entraAdminPrincipalType": {
+      "type": "string",
+      "defaultValue": "Group",
+      "allowedValues": [
+        "Group",
+        "ServicePrincipal",
+        "User"
+      ],
+      "metadata": {
+        "description": "Microsoft Entra admin principal type"
+      }
+    }
+  },
+  "variables": {
+    "network": "[if(not(empty(parameters('delegatedSubnetResourceId'))), createObject('delegatedSubnetResourceId', parameters('delegatedSubnetResourceId'), 'privateDnsZoneArmResourceId', parameters('privateDnsZoneResourceId'), 'publicNetworkAccess', 'Disabled'), createObject('publicNetworkAccess', parameters('publicNetworkAccess')))]",
+    "identity": "[if(not(empty(parameters('userAssignedIdentityId'))), createObject('type', 'UserAssigned', 'userAssignedIdentities', createObject(format('{0}', parameters('userAssignedIdentityId')), createObject())), null())]",
+    "authConfig": "[if(parameters('enableEntraOnlyAuth'), createObject('activeDirectoryAuth', 'Enabled', 'passwordAuth', 'Disabled'), createObject('activeDirectoryAuth', if(not(empty(parameters('entraAdminObjectId'))), 'Enabled', 'Disabled'), 'passwordAuth', 'Enabled'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.DBforPostgreSQL/flexibleServers",
+      "apiVersion": "2024-08-01",
+      "name": "[parameters('name')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "sku": {
+        "name": "[parameters('skuName')]",
+        "tier": "[parameters('tier')]"
+      },
+      "identity": "[variables('identity')]",
+      "properties": {
+        "version": "[parameters('version')]",
+        "administratorLogin": "[parameters('administratorLogin')]",
+        "administratorLoginPassword": "[parameters('administratorLoginPassword')]",
+        "authConfig": "[variables('authConfig')]",
+        "storage": {
+          "storageSizeGB": "[parameters('storageSizeGB')]",
+          "tier": "[parameters('storageTier')]",
+          "autoGrow": "[parameters('autoGrow')]"
+        },
+        "backup": {
+          "backupRetentionDays": "[parameters('backupRetentionDays')]",
+          "geoRedundantBackup": "[parameters('geoRedundantBackup')]"
+        },
+        "highAvailability": {
+          "mode": "[parameters('highAvailabilityMode')]",
+          "standbyAvailabilityZone": "[if(not(equals(parameters('highAvailabilityMode'), 'Disabled')), parameters('standbyAvailabilityZone'), null())]"
+        },
+        "availabilityZone": "[parameters('availabilityZone')]",
+        "network": "[variables('network')]"
+      }
+    },
+    {
+      "condition": "[not(empty(parameters('entraAdminObjectId')))]",
+      "type": "Microsoft.DBforPostgreSQL/flexibleServers/administrators",
+      "apiVersion": "2024-08-01",
+      "name": "[format('{0}/{1}', parameters('name'), parameters('entraAdminObjectId'))]",
+      "properties": {
+        "principalName": "[parameters('entraAdminPrincipalName')]",
+        "principalType": "[parameters('entraAdminPrincipalType')]",
+        "tenantId": "[subscription().tenantId]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', parameters('name'))]"
+      ]
+    },
+    {
+      "copy": {
+        "name": "firewallRuleResources",
+        "count": "[length(parameters('firewallRules'))]"
+      },
+      "condition": "[equals(parameters('publicNetworkAccess'), 'Enabled')]",
+      "type": "Microsoft.DBforPostgreSQL/flexibleServers/firewallRules",
+      "apiVersion": "2024-08-01",
+      "name": "[format('{0}/{1}', parameters('name'), parameters('firewallRules')[copyIndex()].name)]",
+      "properties": {
+        "startIpAddress": "[parameters('firewallRules')[copyIndex()].startIpAddress]",
+        "endIpAddress": "[parameters('firewallRules')[copyIndex()].endIpAddress]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', parameters('name'))]"
+      ]
+    },
+    {
+      "copy": {
+        "name": "databaseResources",
+        "count": "[length(parameters('databases'))]"
+      },
+      "type": "Microsoft.DBforPostgreSQL/flexibleServers/databases",
+      "apiVersion": "2024-08-01",
+      "name": "[format('{0}/{1}', parameters('name'), parameters('databases')[copyIndex()].name)]",
+      "properties": {
+        "charset": "[coalesce(tryGet(parameters('databases')[copyIndex()], 'charset'), 'UTF8')]",
+        "collation": "[coalesce(tryGet(parameters('databases')[copyIndex()], 'collation'), 'en_US.utf8')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', parameters('name'))]"
+      ]
+    },
+    {
+      "copy": {
+        "name": "configurationResources",
+        "count": "[length(parameters('configurations'))]"
+      },
+      "type": "Microsoft.DBforPostgreSQL/flexibleServers/configurations",
+      "apiVersion": "2024-08-01",
+      "name": "[format('{0}/{1}', parameters('name'), parameters('configurations')[copyIndex()].name)]",
+      "properties": {
+        "value": "[parameters('configurations')[copyIndex()].value]",
+        "source": "user-override"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', parameters('name'))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "resourceId": {
+      "type": "string",
+      "metadata": {
+        "description": "The resource ID of the PostgreSQL server"
+      },
+      "value": "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', parameters('name'))]"
+    },
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the PostgreSQL server"
+      },
+      "value": "[parameters('name')]"
+    },
+    "fqdn": {
+      "type": "string",
+      "metadata": {
+        "description": "The FQDN of the PostgreSQL server"
+      },
+      "value": "[reference(resourceId('Microsoft.DBforPostgreSQL/flexibleServers', parameters('name')), '2024-08-01').fullyQualifiedDomainName]"
+    }
+  }
+}

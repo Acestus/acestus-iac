@@ -1,0 +1,258 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.40.2.10011",
+      "templateHash": "10018114129693881010"
+    },
+    "name": "Acestus Load Balancer",
+    "description": "Load Balancer module with Acestus networking standards",
+    "version": "1.0.0"
+  },
+  "parameters": {
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the load balancer"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for the load balancer"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags to apply to the resource"
+      }
+    },
+    "skuName": {
+      "type": "string",
+      "defaultValue": "Standard",
+      "allowedValues": [
+        "Basic",
+        "Standard",
+        "Gateway"
+      ],
+      "metadata": {
+        "description": "SKU name for the load balancer"
+      }
+    },
+    "skuTier": {
+      "type": "string",
+      "defaultValue": "Regional",
+      "allowedValues": [
+        "Regional",
+        "Global"
+      ],
+      "metadata": {
+        "description": "SKU tier for the load balancer"
+      }
+    },
+    "frontendIPConfigurations": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Frontend IP configurations"
+      }
+    },
+    "backendAddressPools": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Backend address pools"
+      }
+    },
+    "loadBalancingRules": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Load balancing rules"
+      }
+    },
+    "probes": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Health probes"
+      }
+    },
+    "inboundNatRules": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Inbound NAT rules"
+      }
+    },
+    "inboundNatPools": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Inbound NAT pools"
+      }
+    },
+    "outboundRules": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Outbound rules"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/loadBalancers",
+      "apiVersion": "2024-01-01",
+      "name": "[parameters('name')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "sku": {
+        "name": "[parameters('skuName')]",
+        "tier": "[parameters('skuTier')]"
+      },
+      "properties": {
+        "copy": [
+          {
+            "name": "frontendIPConfigurations",
+            "count": "[length(parameters('frontendIPConfigurations'))]",
+            "input": {
+              "name": "[parameters('frontendIPConfigurations')[copyIndex('frontendIPConfigurations')].name]",
+              "zones": "[coalesce(tryGet(parameters('frontendIPConfigurations')[copyIndex('frontendIPConfigurations')], 'zones'), null())]",
+              "properties": {
+                "privateIPAddress": "[coalesce(tryGet(parameters('frontendIPConfigurations')[copyIndex('frontendIPConfigurations')], 'privateIPAddress'), null())]",
+                "privateIPAddressVersion": "[coalesce(tryGet(parameters('frontendIPConfigurations')[copyIndex('frontendIPConfigurations')], 'privateIPAddressVersion'), 'IPv4')]",
+                "privateIPAllocationMethod": "[coalesce(tryGet(parameters('frontendIPConfigurations')[copyIndex('frontendIPConfigurations')], 'privateIPAllocationMethod'), 'Dynamic')]",
+                "publicIPAddress": "[if(not(empty(coalesce(tryGet(parameters('frontendIPConfigurations')[copyIndex('frontendIPConfigurations')], 'publicIPAddressId'), ''))), createObject('id', parameters('frontendIPConfigurations')[copyIndex('frontendIPConfigurations')].publicIPAddressId), null())]",
+                "subnet": "[if(not(empty(coalesce(tryGet(parameters('frontendIPConfigurations')[copyIndex('frontendIPConfigurations')], 'subnetId'), ''))), createObject('id', parameters('frontendIPConfigurations')[copyIndex('frontendIPConfigurations')].subnetId), null())]"
+              }
+            }
+          },
+          {
+            "name": "backendAddressPools",
+            "count": "[length(parameters('backendAddressPools'))]",
+            "input": {
+              "name": "[parameters('backendAddressPools')[copyIndex('backendAddressPools')].name]"
+            }
+          },
+          {
+            "name": "loadBalancingRules",
+            "count": "[length(parameters('loadBalancingRules'))]",
+            "input": {
+              "name": "[parameters('loadBalancingRules')[copyIndex('loadBalancingRules')].name]",
+              "properties": {
+                "frontendIPConfiguration": {
+                  "id": "[resourceId('Microsoft.Network/loadBalancers/frontendIPConfigurations', parameters('name'), parameters('loadBalancingRules')[copyIndex('loadBalancingRules')].frontendIPConfigurationName)]"
+                },
+                "backendAddressPool": {
+                  "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', parameters('name'), parameters('loadBalancingRules')[copyIndex('loadBalancingRules')].backendAddressPoolName)]"
+                },
+                "probe": "[if(not(empty(coalesce(tryGet(parameters('loadBalancingRules')[copyIndex('loadBalancingRules')], 'probeName'), ''))), createObject('id', resourceId('Microsoft.Network/loadBalancers/probes', parameters('name'), parameters('loadBalancingRules')[copyIndex('loadBalancingRules')].probeName)), null())]",
+                "protocol": "[parameters('loadBalancingRules')[copyIndex('loadBalancingRules')].protocol]",
+                "frontendPort": "[parameters('loadBalancingRules')[copyIndex('loadBalancingRules')].frontendPort]",
+                "backendPort": "[parameters('loadBalancingRules')[copyIndex('loadBalancingRules')].backendPort]",
+                "idleTimeoutInMinutes": "[coalesce(tryGet(parameters('loadBalancingRules')[copyIndex('loadBalancingRules')], 'idleTimeoutInMinutes'), 4)]",
+                "enableFloatingIP": "[coalesce(tryGet(parameters('loadBalancingRules')[copyIndex('loadBalancingRules')], 'enableFloatingIP'), false())]",
+                "enableTcpReset": "[coalesce(tryGet(parameters('loadBalancingRules')[copyIndex('loadBalancingRules')], 'enableTcpReset'), true())]",
+                "disableOutboundSnat": "[coalesce(tryGet(parameters('loadBalancingRules')[copyIndex('loadBalancingRules')], 'disableOutboundSnat'), false())]",
+                "loadDistribution": "[coalesce(tryGet(parameters('loadBalancingRules')[copyIndex('loadBalancingRules')], 'loadDistribution'), 'Default')]"
+              }
+            }
+          },
+          {
+            "name": "probes",
+            "count": "[length(parameters('probes'))]",
+            "input": {
+              "name": "[parameters('probes')[copyIndex('probes')].name]",
+              "properties": {
+                "protocol": "[parameters('probes')[copyIndex('probes')].protocol]",
+                "port": "[parameters('probes')[copyIndex('probes')].port]",
+                "requestPath": "[coalesce(tryGet(parameters('probes')[copyIndex('probes')], 'requestPath'), null())]",
+                "intervalInSeconds": "[coalesce(tryGet(parameters('probes')[copyIndex('probes')], 'intervalInSeconds'), 5)]",
+                "numberOfProbes": "[coalesce(tryGet(parameters('probes')[copyIndex('probes')], 'numberOfProbes'), 2)]",
+                "probeThreshold": "[coalesce(tryGet(parameters('probes')[copyIndex('probes')], 'probeThreshold'), 1)]"
+              }
+            }
+          },
+          {
+            "name": "inboundNatRules",
+            "count": "[length(parameters('inboundNatRules'))]",
+            "input": {
+              "name": "[parameters('inboundNatRules')[copyIndex('inboundNatRules')].name]",
+              "properties": {
+                "frontendIPConfiguration": {
+                  "id": "[resourceId('Microsoft.Network/loadBalancers/frontendIPConfigurations', parameters('name'), parameters('inboundNatRules')[copyIndex('inboundNatRules')].frontendIPConfigurationName)]"
+                },
+                "protocol": "[parameters('inboundNatRules')[copyIndex('inboundNatRules')].protocol]",
+                "frontendPort": "[parameters('inboundNatRules')[copyIndex('inboundNatRules')].frontendPort]",
+                "backendPort": "[parameters('inboundNatRules')[copyIndex('inboundNatRules')].backendPort]",
+                "idleTimeoutInMinutes": "[coalesce(tryGet(parameters('inboundNatRules')[copyIndex('inboundNatRules')], 'idleTimeoutInMinutes'), 4)]",
+                "enableFloatingIP": "[coalesce(tryGet(parameters('inboundNatRules')[copyIndex('inboundNatRules')], 'enableFloatingIP'), false())]",
+                "enableTcpReset": "[coalesce(tryGet(parameters('inboundNatRules')[copyIndex('inboundNatRules')], 'enableTcpReset'), true())]"
+              }
+            }
+          },
+          {
+            "name": "outboundRules",
+            "count": "[length(parameters('outboundRules'))]",
+            "input": {
+              "name": "[parameters('outboundRules')[copyIndex('outboundRules')].name]",
+              "properties": {
+                "frontendIPConfigurations": "[parameters('outboundRules')[copyIndex('outboundRules')].frontendIPConfigurations]",
+                "backendAddressPool": {
+                  "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', parameters('name'), parameters('outboundRules')[copyIndex('outboundRules')].backendAddressPoolName)]"
+                },
+                "protocol": "[coalesce(tryGet(parameters('outboundRules')[copyIndex('outboundRules')], 'protocol'), 'All')]",
+                "allocatedOutboundPorts": "[coalesce(tryGet(parameters('outboundRules')[copyIndex('outboundRules')], 'allocatedOutboundPorts'), 0)]",
+                "idleTimeoutInMinutes": "[coalesce(tryGet(parameters('outboundRules')[copyIndex('outboundRules')], 'idleTimeoutInMinutes'), 4)]",
+                "enableTcpReset": "[coalesce(tryGet(parameters('outboundRules')[copyIndex('outboundRules')], 'enableTcpReset'), true())]"
+              }
+            }
+          }
+        ],
+        "inboundNatPools": "[parameters('inboundNatPools')]"
+      }
+    }
+  ],
+  "outputs": {
+    "resourceId": {
+      "type": "string",
+      "metadata": {
+        "description": "The resource ID of the load balancer"
+      },
+      "value": "[resourceId('Microsoft.Network/loadBalancers', parameters('name'))]"
+    },
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the load balancer"
+      },
+      "value": "[parameters('name')]"
+    },
+    "backendAddressPoolIds": {
+      "type": "array",
+      "metadata": {
+        "description": "The backend address pool resource IDs"
+      },
+      "copy": {
+        "count": "[length(parameters('backendAddressPools'))]",
+        "input": "[reference(resourceId('Microsoft.Network/loadBalancers', parameters('name')), '2024-01-01').backendAddressPools[copyIndex()].id]"
+      }
+    },
+    "frontendIPConfigurationIds": {
+      "type": "array",
+      "metadata": {
+        "description": "The frontend IP configuration resource IDs"
+      },
+      "copy": {
+        "count": "[length(parameters('frontendIPConfigurations'))]",
+        "input": "[reference(resourceId('Microsoft.Network/loadBalancers', parameters('name')), '2024-01-01').frontendIPConfigurations[copyIndex()].id]"
+      }
+    }
+  }
+}

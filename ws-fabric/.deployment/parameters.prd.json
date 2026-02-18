@@ -1,0 +1,29 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/deploymentRules/2.0.0/schema.json",
+  "version": "2.0",
+  "description": "Production environment parameters - uses same storage account as dev, different container",
+  "environment": "Production",
+  "rules": [
+    {
+      "displayName": "pl_ing_blob_api_brz",
+      "itemType": "DataPipeline",
+      "overrides": {
+        "source.container": "container-production",
+        "trigger.blobPathBeginsWith": "/container-production/"
+      }
+    }
+  ],
+  "parameters": {
+    "subscription_id": "<your-subscription-id>",
+    "resource_group": "<your-resource-group>",
+    "storage_account": "<your-storage-account>",
+    "container_name": "container-production",
+    "managed_identity": "<your-managed-identity>"
+  },
+  "notebookParameters": {
+    "environment": "prd",
+    "source_container": "container-production",
+    "storage_account": "<your-storage-account>",
+    "timezone": "<your-timezone>"
+  }
+}

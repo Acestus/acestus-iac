@@ -1,0 +1,278 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.40.2.10011",
+      "templateHash": "14906752364387473638"
+    },
+    "name": "Acestus Private DNS Zone",
+    "description": "Private DNS Zone module with Acestus networking standards",
+    "version": "1.0.0"
+  },
+  "parameters": {
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the private DNS zone (e.g., privatelink.blob.core.windows.net)"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags to apply to the resource"
+      }
+    },
+    "virtualNetworkLinks": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Virtual network links to create"
+      }
+    },
+    "aRecords": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "A records to create"
+      }
+    },
+    "aaaaRecords": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "AAAA records to create"
+      }
+    },
+    "cnameRecords": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "CNAME records to create"
+      }
+    },
+    "mxRecords": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "MX records to create"
+      }
+    },
+    "ptrRecords": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "PTR records to create"
+      }
+    },
+    "srvRecords": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "SRV records to create"
+      }
+    },
+    "txtRecords": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "TXT records to create"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/privateDnsZones",
+      "apiVersion": "2024-06-01",
+      "name": "[parameters('name')]",
+      "location": "global",
+      "tags": "[parameters('tags')]"
+    },
+    {
+      "copy": {
+        "name": "vnetLinks",
+        "count": "[length(parameters('virtualNetworkLinks'))]"
+      },
+      "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+      "apiVersion": "2024-06-01",
+      "name": "[format('{0}/{1}', parameters('name'), parameters('virtualNetworkLinks')[copyIndex()].name)]",
+      "location": "global",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "virtualNetwork": {
+          "id": "[parameters('virtualNetworkLinks')[copyIndex()].virtualNetworkId]"
+        },
+        "registrationEnabled": "[coalesce(tryGet(parameters('virtualNetworkLinks')[copyIndex()], 'registrationEnabled'), false())]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/privateDnsZones', parameters('name'))]"
+      ]
+    },
+    {
+      "copy": {
+        "name": "aRecordResources",
+        "count": "[length(parameters('aRecords'))]"
+      },
+      "type": "Microsoft.Network/privateDnsZones/A",
+      "apiVersion": "2024-06-01",
+      "name": "[format('{0}/{1}', parameters('name'), parameters('aRecords')[copyIndex()].name)]",
+      "properties": {
+        "copy": [
+          {
+            "name": "aRecords",
+            "count": "[length(parameters('aRecords')[copyIndex()].ipv4Addresses)]",
+            "input": {
+              "ipv4Address": "[parameters('aRecords')[copyIndex()].ipv4Addresses[copyIndex('aRecords')]]"
+            }
+          }
+        ],
+        "ttl": "[coalesce(tryGet(parameters('aRecords')[copyIndex()], 'ttl'), 3600)]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/privateDnsZones', parameters('name'))]"
+      ]
+    },
+    {
+      "copy": {
+        "name": "aaaaRecordResources",
+        "count": "[length(parameters('aaaaRecords'))]"
+      },
+      "type": "Microsoft.Network/privateDnsZones/AAAA",
+      "apiVersion": "2024-06-01",
+      "name": "[format('{0}/{1}', parameters('name'), parameters('aaaaRecords')[copyIndex()].name)]",
+      "properties": {
+        "copy": [
+          {
+            "name": "aaaaRecords",
+            "count": "[length(parameters('aaaaRecords')[copyIndex()].ipv6Addresses)]",
+            "input": {
+              "ipv6Address": "[parameters('aaaaRecords')[copyIndex()].ipv6Addresses[copyIndex('aaaaRecords')]]"
+            }
+          }
+        ],
+        "ttl": "[coalesce(tryGet(parameters('aaaaRecords')[copyIndex()], 'ttl'), 3600)]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/privateDnsZones', parameters('name'))]"
+      ]
+    },
+    {
+      "copy": {
+        "name": "cnameRecordResources",
+        "count": "[length(parameters('cnameRecords'))]"
+      },
+      "type": "Microsoft.Network/privateDnsZones/CNAME",
+      "apiVersion": "2024-06-01",
+      "name": "[format('{0}/{1}', parameters('name'), parameters('cnameRecords')[copyIndex()].name)]",
+      "properties": {
+        "ttl": "[coalesce(tryGet(parameters('cnameRecords')[copyIndex()], 'ttl'), 3600)]",
+        "cnameRecord": {
+          "cname": "[parameters('cnameRecords')[copyIndex()].cname]"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/privateDnsZones', parameters('name'))]"
+      ]
+    },
+    {
+      "copy": {
+        "name": "mxRecordResources",
+        "count": "[length(parameters('mxRecords'))]"
+      },
+      "type": "Microsoft.Network/privateDnsZones/MX",
+      "apiVersion": "2024-06-01",
+      "name": "[format('{0}/{1}', parameters('name'), parameters('mxRecords')[copyIndex()].name)]",
+      "properties": {
+        "ttl": "[coalesce(tryGet(parameters('mxRecords')[copyIndex()], 'ttl'), 3600)]",
+        "mxRecords": "[parameters('mxRecords')[copyIndex()].mxRecords]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/privateDnsZones', parameters('name'))]"
+      ]
+    },
+    {
+      "copy": {
+        "name": "ptrRecordResources",
+        "count": "[length(parameters('ptrRecords'))]"
+      },
+      "type": "Microsoft.Network/privateDnsZones/PTR",
+      "apiVersion": "2024-06-01",
+      "name": "[format('{0}/{1}', parameters('name'), parameters('ptrRecords')[copyIndex()].name)]",
+      "properties": {
+        "copy": [
+          {
+            "name": "ptrRecords",
+            "count": "[length(parameters('ptrRecords')[copyIndex()].ptrRecords)]",
+            "input": {
+              "ptrdname": "[parameters('ptrRecords')[copyIndex()].ptrRecords[copyIndex('ptrRecords')]]"
+            }
+          }
+        ],
+        "ttl": "[coalesce(tryGet(parameters('ptrRecords')[copyIndex()], 'ttl'), 3600)]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/privateDnsZones', parameters('name'))]"
+      ]
+    },
+    {
+      "copy": {
+        "name": "srvRecordResources",
+        "count": "[length(parameters('srvRecords'))]"
+      },
+      "type": "Microsoft.Network/privateDnsZones/SRV",
+      "apiVersion": "2024-06-01",
+      "name": "[format('{0}/{1}', parameters('name'), parameters('srvRecords')[copyIndex()].name)]",
+      "properties": {
+        "ttl": "[coalesce(tryGet(parameters('srvRecords')[copyIndex()], 'ttl'), 3600)]",
+        "srvRecords": "[parameters('srvRecords')[copyIndex()].srvRecords]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/privateDnsZones', parameters('name'))]"
+      ]
+    },
+    {
+      "copy": {
+        "name": "txtRecordResources",
+        "count": "[length(parameters('txtRecords'))]"
+      },
+      "type": "Microsoft.Network/privateDnsZones/TXT",
+      "apiVersion": "2024-06-01",
+      "name": "[format('{0}/{1}', parameters('name'), parameters('txtRecords')[copyIndex()].name)]",
+      "properties": {
+        "copy": [
+          {
+            "name": "txtRecords",
+            "count": "[length(parameters('txtRecords')[copyIndex()].values)]",
+            "input": {
+              "value": [
+                "[parameters('txtRecords')[copyIndex()].values[copyIndex('txtRecords')]]"
+              ]
+            }
+          }
+        ],
+        "ttl": "[coalesce(tryGet(parameters('txtRecords')[copyIndex()], 'ttl'), 3600)]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/privateDnsZones', parameters('name'))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "resourceId": {
+      "type": "string",
+      "metadata": {
+        "description": "The resource ID of the private DNS zone"
+      },
+      "value": "[resourceId('Microsoft.Network/privateDnsZones', parameters('name'))]"
+    },
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the private DNS zone"
+      },
+      "value": "[parameters('name')]"
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/userDataFunction/definition/1.1.0/schema.json",
+  "runtime": "PYTHON",
+  "connectedDataSources": [
+    {
+      "alias": "lhessgld",
+      "artifactId": "{{lh_api_GLD}}",
+      "artifactType": "Lakehouse",
+      "workspaceId": "{{WORKSPACE_ID}}"
+    }
+  ],
+  "functions": [
+    {
+      "name": "query_data_from_tables",
+      "description": "",
+      "isPublicEndpointEnabled": true
+    }
+  ],
+  "libraries": {
+    "public": [
+      {
+        "name": "fabric-user-data-functions",
+        "type": "PYPI",
+        "version": "1.0"
+      },
+      {
+        "name": "pandas",
+        "type": "PYPI",
+        "version": "2.3.3"
+      },
+      {
+        "name": "pyarrow",
+        "type": "PYPI",
+        "version": "23.0.0"
+      },
+      {
+        "name": "pyspark",
+        "type": "PYPI",
+        "version": "4.1.1"
+      }
+    ],
+    "private": []
+  }
+}

@@ -1,0 +1,252 @@
+name: Reusable health monitor
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      resource_group_name:
+        type: string
+        required: true
+      functions_json:
+        type: string
+        default: '[]'
+      health_endpoints_json:
+        type: string
+        default: '[]'
+        description: 'JSON array of endpoints to check, e.g. [{"name":"API","url":"https://api.example.com/health"}]'
+      create_issue_on_failure:
+        type: boolean
+        default: true
+      azure_client_id:
+        type: string
+        required: true
+      azure_tenant_id:
+        type: string
+        required: true
+      azure_subscription_id:
+        type: string
+        required: true
+    outputs:
+      status:
+        description: 'Overall health status: healthy, degraded, or unhealthy'
+        value: ${{ jobs.monitor.outputs.status }}
+
+permissions:
+  id-token: write
+  contents: read
+  issues: write
+
+jobs:
+  monitor:
+    runs-on: ubuntu-24.04
+    environment: ${{ inputs.environment }}
+
+    outputs:
+      status: ${{ steps.summary.outputs.status }}
+
+    env:
+      RESOURCE_GROUP_NAME: ${{ inputs.resource_group_name }}
+      FUNCTIONS_JSON: ${{ inputs.functions_json }}
+      HEALTH_ENDPOINTS_JSON: ${{ inputs.health_endpoints_json }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ inputs.azure_client_id }}
+          tenant-id: ${{ inputs.azure_tenant_id }}
+          subscription-id: ${{ inputs.azure_subscription_id }}
+          auth-type: SERVICE_PRINCIPAL
+          audience: api://AzureADTokenExchange
+
+      - name: Check Function App status
+        id: functions
+        if: ${{ inputs.functions_json != '[]' }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+
+          functions = json.loads(os.environ.get('FUNCTIONS_JSON', '[]'))
+          results = []
+
+          for fn in functions:
+            name = fn['name']
+            
+            result = subprocess.run(
+              ["az", "functionapp", "show", "--name", name, "--resource-group", os.environ['RESOURCE_GROUP_NAME'], 
+               "--query", "{state:state,availabilityState:availabilityState}", "-o", "json"],
+              capture_output=True,
+              text=True
+            )
+            
+            if result.returncode == 0:
+              data = json.loads(result.stdout)
+              healthy = data.get("state") == "Running"
+              results.append({
+                "name": name,
+                "type": "functionapp",
+                "state": data.get("state", "Unknown"),
+                "availability": data.get("availabilityState", "Unknown"),
+                "healthy": healthy
+              })
+              icon = "✅" if healthy else "❌"
+              print(f"{icon} {name}: {data.get('state', 'Unknown')}")
+            else:
+              results.append({
+                "name": name,
+                "type": "functionapp",
+                "state": "Error",
+                "healthy": False
+              })
+              print(f"❌ {name}: Error")
+
+          with open('function_results.json', 'w') as f:
+            json.dump(results, f)
+          PY
+
+      - name: Check health endpoints
+        id: endpoints
+        if: ${{ inputs.health_endpoints_json != '[]' }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import urllib.request
+          import urllib.error
+          import time
+
+          endpoints = json.loads(os.environ.get('HEALTH_ENDPOINTS_JSON', '[]'))
+          results = []
+
+          for ep in endpoints:
+            name = ep['name']
+            url = ep['url']
+            expected_status = ep.get('expected_status', 200)
+            
+            start = time.time()
+            try:
+              req = urllib.request.Request(url, method='GET')
+              req.add_header('User-Agent', 'GitHub-Actions-Health-Monitor')
+              
+              with urllib.request.urlopen(req, timeout=30) as response:
+                elapsed = int((time.time() - start) * 1000)
+                status = response.status
+                healthy = status == expected_status
+                results.append({
+                  "name": name,
+                  "url": url,
+                  "status_code": status,
+                  "response_time_ms": elapsed,
+                  "healthy": healthy
+                })
+                icon = "✅" if healthy else "❌"
+                print(f"{icon} {name}: {status} ({elapsed}ms)")
+            except Exception as e:
+              elapsed = int((time.time() - start) * 1000)
+              results.append({
+                "name": name,
+                "url": url,
+                "status_code": 0,
+                "response_time_ms": elapsed,
+                "healthy": False,
+                "error": str(e)
+              })
+              print(f"❌ {name}: {str(e)}")
+
+          with open('endpoint_results.json', 'w') as f:
+            json.dump(results, f)
+          PY
+
+      - name: Generate health summary
+        id: summary
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          import os
+
+          all_results = []
+          
+          if os.path.exists('function_results.json'):
+            with open('function_results.json') as f:
+              all_results.extend(json.load(f))
+          
+          if os.path.exists('endpoint_results.json'):
+            with open('endpoint_results.json') as f:
+              all_results.extend(json.load(f))
+          
+          if not all_results:
+            status = "healthy"
+          else:
+            healthy_count = sum(1 for r in all_results if r.get("healthy", False))
+            total_count = len(all_results)
+            
+            if healthy_count == total_count:
+              status = "healthy"
+            elif healthy_count == 0:
+              status = "unhealthy"
+            else:
+              status = "degraded"
+          
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+            f.write(f"status={status}\n")
+            f.write(f"healthy_count={healthy_count}\n")
+            f.write(f"total_count={total_count}\n")
+          
+          print(f"\n{'='*50}")
+          print(f"Overall Status: {status.upper()}")
+          print(f"Healthy: {healthy_count}/{total_count}")
+          print(f"{'='*50}")
+          PY
+
+      - name: Write summary
+        if: always()
+        run: |
+          echo "## Health Monitor Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ steps.summary.outputs.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Checked at:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
+
+      - name: Create Issue on Failure
+        if: failure() && inputs.create_issue_on_failure
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `Health Check Failed - ${new Date().toISOString().split('T')[0]}`;
+            const body = `## 🚨 Health Check Failed
+            
+            **Time:** ${new Date().toUTCString()}
+            **Environment:** ${{ inputs.environment }}
+            **Resource Group:** ${{ inputs.resource_group_name }}
+            
+            **Action Required:** Please investigate the failed health checks.
+            
+            [View workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
+            
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'health-check'
+            });
+            
+            const today = new Date().toISOString().split('T')[0];
+            const existingIssue = issues.data.find(issue => issue.title.includes(today));
+            
+            if (!existingIssue) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['health-check', 'automated']
+              });
+            }

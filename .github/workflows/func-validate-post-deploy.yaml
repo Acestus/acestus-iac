@@ -1,0 +1,183 @@
+name: Reusable post-deployment validation
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      resource_group_name:
+        type: string
+        required: true
+      functions_json:
+        type: string
+        default: '[]'
+      health_endpoints_json:
+        type: string
+        default: '[]'
+        description: 'JSON array of endpoints to check, e.g. [{"name":"API","url":"https://api.example.com/health"}]'
+      wait_seconds:
+        type: number
+        default: 30
+        description: 'Seconds to wait before running validation'
+      azure_client_id:
+        type: string
+        required: true
+      azure_tenant_id:
+        type: string
+        required: true
+      azure_subscription_id:
+        type: string
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    environment: ${{ inputs.environment }}
+
+    env:
+      RESOURCE_GROUP_NAME: ${{ inputs.resource_group_name }}
+      FUNCTIONS_JSON: ${{ inputs.functions_json }}
+      HEALTH_ENDPOINTS_JSON: ${{ inputs.health_endpoints_json }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Wait for deployment to stabilize
+        run: |
+          echo "Waiting ${{ inputs.wait_seconds }} seconds for deployment to stabilize..."
+          sleep ${{ inputs.wait_seconds }}
+
+      - name: Login with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ inputs.azure_client_id }}
+          tenant-id: ${{ inputs.azure_tenant_id }}
+          subscription-id: ${{ inputs.azure_subscription_id }}
+          auth-type: SERVICE_PRINCIPAL
+          audience: api://AzureADTokenExchange
+
+      - name: Validate Function App health
+        if: ${{ inputs.functions_json != '[]' }}
+        run: |
+          echo "## Function App Health" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+          import sys
+
+          functions = json.loads(os.environ.get('FUNCTIONS_JSON', '[]'))
+          errors = []
+          summary = []
+
+          for fn in functions:
+            name = fn['name']
+            
+            result = subprocess.run(
+              ["az", "functionapp", "show", "--name", name, "--resource-group", os.environ['RESOURCE_GROUP_NAME'], "--query", "state", "-o", "tsv"],
+              capture_output=True,
+              text=True
+            )
+            
+            state = result.stdout.strip()
+            if state == "Running":
+              summary.append(f"✅ {name}: Running")
+            else:
+              summary.append(f"❌ {name}: {state or 'Unknown'}")
+              errors.append(f"{name} is not running (state: {state})")
+
+            result = subprocess.run(
+              ["az", "functionapp", "function", "list", "--name", name, "--resource-group", os.environ['RESOURCE_GROUP_NAME'], "--query", "length(@)", "-o", "tsv"],
+              capture_output=True,
+              text=True
+            )
+            
+            func_count = result.stdout.strip()
+            if func_count and int(func_count) > 0:
+              summary.append(f"   └─ Functions loaded: {func_count}")
+            else:
+              summary.append(f"   └─ ⚠️ No functions detected")
+
+          for s in summary:
+            print(s)
+
+          if errors:
+            sys.exit(1)
+          PY
+
+      - name: Validate health endpoints
+        if: ${{ inputs.health_endpoints_json != '[]' }}
+        run: |
+          echo "## Health Endpoint Checks" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          python - <<'PY'
+          import json
+          import os
+          import urllib.request
+          import urllib.error
+          import sys
+
+          endpoints = json.loads(os.environ.get('HEALTH_ENDPOINTS_JSON', '[]'))
+          errors = []
+
+          for ep in endpoints:
+            name = ep['name']
+            url = ep['url']
+            expected_status = ep.get('expected_status', 200)
+            
+            try:
+              req = urllib.request.Request(url, method='GET')
+              req.add_header('User-Agent', 'GitHub-Actions-Health-Check')
+              
+              with urllib.request.urlopen(req, timeout=30) as response:
+                status = response.status
+                if status == expected_status:
+                  print(f"✅ {name}: {url} - {status}")
+                else:
+                  print(f"❌ {name}: {url} - Got {status}, expected {expected_status}")
+                  errors.append(f"{name}: unexpected status {status}")
+            except urllib.error.HTTPError as e:
+              print(f"❌ {name}: {url} - HTTP {e.code}")
+              errors.append(f"{name}: HTTP {e.code}")
+            except urllib.error.URLError as e:
+              print(f"❌ {name}: {url} - {e.reason}")
+              errors.append(f"{name}: {e.reason}")
+            except Exception as e:
+              print(f"❌ {name}: {url} - {str(e)}")
+              errors.append(f"{name}: {str(e)}")
+
+          if errors:
+            sys.exit(1)
+          PY
+
+      - name: Check recent deployment status
+        run: |
+          echo "## Recent Deployments" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+          az deployment group list \
+            --resource-group "$RESOURCE_GROUP_NAME" \
+            --top 5 \
+            --query "[].{name:name, state:properties.provisioningState, timestamp:properties.timestamp}" \
+            -o table | tee -a $GITHUB_STEP_SUMMARY
+
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Validation Summary
+        if: always()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Resource Group:** $RESOURCE_GROUP_NAME" >> $GITHUB_STEP_SUMMARY
+          echo "**Validated at:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY

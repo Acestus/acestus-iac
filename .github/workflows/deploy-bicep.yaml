@@ -1,0 +1,208 @@
+name: Deploy Bicep Infrastructure
+
+# DISABLED - Remove the 'if: false' from the jobs to enable
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: "Project folder to deploy (e.g., rg-mgmt100-corp-usw2)"
+        required: true
+        type: string
+      environment:
+        description: "Environment"
+        required: true
+        type: choice
+        options:
+          - dev
+          - prd
+      action:
+        description: "Action"
+        type: choice
+        options:
+          - create
+          - delete
+        default: create
+
+  push:
+    branches: [main]
+    paths:
+      - "bicep/rg-*/**"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  detect-changes:
+    if: false # DISABLED - change to: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      projects: ${{ steps.detect.outputs.projects }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - id: detect
+        name: Detect changed projects
+        run: |
+          changed=$(git diff --name-only HEAD~1 HEAD | grep '^bicep/rg-' | cut -d'/' -f2 | sort -u | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          echo "Changed projects: $changed"
+          echo "projects=$changed" >> $GITHUB_OUTPUT
+
+  deploy-manual:
+    if: false # DISABLED - change to: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    environment: ${{ inputs.environment }}
+
+    env:
+      PROJECT: ${{ inputs.project }}
+      ENV: ${{ inputs.environment }}
+      ACTION: ${{ inputs.action }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set deployment variables
+        id: vars
+        run: |
+          # Handle different naming conventions
+          # Pattern 1: rg-mgmt100-corp-usw2 -> mgmt100-corp-usw2.bicep, mgmt100-corp-usw2-dev.bicepparam
+          # Pattern 2: rg-acemgt-dev-usw2-001 -> main.bicep, main.bicepparam (env already in folder name)
+
+          PROJECT="${{ env.PROJECT }}"
+          ENV="${{ env.ENV }}"
+
+          # Check if main.bicep exists (newer pattern)
+          if [ -f "bicep/${PROJECT}/main.bicep" ]; then
+            TEMPLATE_FILE="bicep/${PROJECT}/main.bicep"
+            PARAMS_FILE="bicep/${PROJECT}/main.bicepparam"
+          else
+            # Legacy pattern: project-name.bicep
+            BASE_NAME=$(echo "$PROJECT" | sed 's/^rg-//')
+            TEMPLATE_FILE="bicep/${PROJECT}/${BASE_NAME}.bicep"
+            PARAMS_FILE="bicep/${PROJECT}/${BASE_NAME}-${ENV}.bicepparam"
+          fi
+
+          STACK_NAME="stack-${PROJECT}-${ENV}"
+          RESOURCE_GROUP="${PROJECT}"
+
+          echo "template_file=$TEMPLATE_FILE" >> $GITHUB_OUTPUT
+          echo "params_file=$PARAMS_FILE" >> $GITHUB_OUTPUT
+          echo "stack_name=$STACK_NAME" >> $GITHUB_OUTPUT
+          echo "resource_group=$RESOURCE_GROUP" >> $GITHUB_OUTPUT
+
+          echo "## Deployment Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "- **Project:** $PROJECT" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** $ENV" >> $GITHUB_STEP_SUMMARY
+          echo "- **Template:** $TEMPLATE_FILE" >> $GITHUB_STEP_SUMMARY
+          echo "- **Parameters:** $PARAMS_FILE" >> $GITHUB_STEP_SUMMARY
+
+      - name: Login with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          auth-type: SERVICE_PRINCIPAL
+          audience: api://AzureADTokenExchange
+
+      - name: Ensure Resource Group Exists
+        if: env.ACTION == 'create'
+        run: |
+          if ! az group show --name "${{ steps.vars.outputs.resource_group }}" &> /dev/null; then
+            az group create --name "${{ steps.vars.outputs.resource_group }}" --location westus2
+          fi
+
+      - name: Deploy Bicep Stack
+        if: env.ACTION == 'create'
+        run: |
+          az stack group create \
+            --name "${{ steps.vars.outputs.stack_name }}" \
+            --resource-group "${{ steps.vars.outputs.resource_group }}" \
+            --template-file "${{ steps.vars.outputs.template_file }}" \
+            --parameters "${{ steps.vars.outputs.params_file }}" \
+            --deny-settings-mode none \
+            --action-on-unmanage deleteResources \
+            --yes
+
+      - name: Delete Bicep Stack
+        if: env.ACTION == 'delete'
+        run: |
+          az stack group delete \
+            --name "${{ steps.vars.outputs.stack_name }}" \
+            --resource-group "${{ steps.vars.outputs.resource_group }}" \
+            --action-on-unmanage deleteResources \
+            --yes
+
+  deploy-auto:
+    if: false # DISABLED - change to: github.event_name == 'push' && needs.detect-changes.outputs.projects != '[]'
+    needs: [detect-changes]
+    runs-on: ubuntu-24.04
+    environment: prd
+
+    strategy:
+      matrix:
+        project: ${{ fromJson(needs.detect-changes.outputs.projects) }}
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set deployment variables
+        id: vars
+        run: |
+          PROJECT="${{ matrix.project }}"
+          ENV="prd"
+
+          # Check if main.bicep exists (newer pattern)
+          if [ -f "bicep/${PROJECT}/main.bicep" ]; then
+            TEMPLATE_FILE="bicep/${PROJECT}/main.bicep"
+            PARAMS_FILE="bicep/${PROJECT}/main.bicepparam"
+          else
+            # Legacy pattern: project-name.bicep
+            BASE_NAME=$(echo "$PROJECT" | sed 's/^rg-//')
+            TEMPLATE_FILE="bicep/${PROJECT}/${BASE_NAME}.bicep"
+            PARAMS_FILE="bicep/${PROJECT}/${BASE_NAME}-${ENV}.bicepparam"
+          fi
+
+          STACK_NAME="stack-${PROJECT}-${ENV}"
+          RESOURCE_GROUP="${PROJECT}"
+
+          echo "template_file=$TEMPLATE_FILE" >> $GITHUB_OUTPUT
+          echo "params_file=$PARAMS_FILE" >> $GITHUB_OUTPUT
+          echo "stack_name=$STACK_NAME" >> $GITHUB_OUTPUT
+          echo "resource_group=$RESOURCE_GROUP" >> $GITHUB_OUTPUT
+
+      - name: Login with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          auth-type: SERVICE_PRINCIPAL
+          audience: api://AzureADTokenExchange
+
+      - name: Ensure Resource Group Exists
+        run: |
+          if ! az group show --name "${{ steps.vars.outputs.resource_group }}" &> /dev/null; then
+            az group create --name "${{ steps.vars.outputs.resource_group }}" --location westus2
+          fi
+
+      - name: Deploy Bicep Stack
+        run: |
+          az stack group create \
+            --name "${{ steps.vars.outputs.stack_name }}" \
+            --resource-group "${{ steps.vars.outputs.resource_group }}" \
+            --template-file "${{ steps.vars.outputs.template_file }}" \
+            --parameters "${{ steps.vars.outputs.params_file }}" \
+            --deny-settings-mode none \
+            --action-on-unmanage deleteResources \
+            --yes
+
+      - name: Deployment Summary
+        if: always()
+        run: |
+          echo "## Deployment: ${{ matrix.project }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** prd" >> $GITHUB_STEP_SUMMARY
+          echo "- **Resource Group:** ${{ steps.vars.outputs.resource_group }}" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,213 @@
+name: Reusable PR validation
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        default: dev
+      resource_group_name:
+        type: string
+        required: true
+      template_file:
+        type: string
+        default: infrastructure/main.bicep
+      params_file:
+        type: string
+        default: infrastructure/main.dev.bicepparam
+      functions_json:
+        type: string
+        default: '[]'
+      node_version:
+        type: string
+        default: '20'
+      run_tests:
+        type: boolean
+        default: true
+      package_manager:
+        type: string
+        default: npm
+      azure_client_id:
+        type: string
+        required: true
+      azure_tenant_id:
+        type: string
+        required: true
+      azure_subscription_id:
+        type: string
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+
+    env:
+      RESOURCE_GROUP_NAME: ${{ inputs.resource_group_name }}
+      TEMPLATE_FILE: ${{ inputs.template_file }}
+      PARAMS_FILE: ${{ inputs.params_file }}
+      FUNCTIONS_JSON: ${{ inputs.functions_json }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ inputs.azure_client_id }}
+          tenant-id: ${{ inputs.azure_tenant_id }}
+          subscription-id: ${{ inputs.azure_subscription_id }}
+
+      - name: Validate Bicep template
+        id: bicep_validate
+        run: |
+          echo "## Bicep Validation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if az bicep build --file "$TEMPLATE_FILE" 2>&1; then
+            echo "✅ Bicep build successful" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Bicep build failed" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: What-If deployment
+        id: whatif
+        run: |
+          echo "## What-If Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '\`\`\`' >> $GITHUB_STEP_SUMMARY
+
+          az deployment group what-if \
+            --resource-group "$RESOURCE_GROUP_NAME" \
+            --template-file "$TEMPLATE_FILE" \
+            --parameters "$PARAMS_FILE" \
+            --no-pretty-print 2>&1 | tee whatif.txt
+
+          cat whatif.txt >> $GITHUB_STEP_SUMMARY
+          echo '\`\`\`' >> $GITHUB_STEP_SUMMARY
+
+      - name: Setup Node.js
+        if: ${{ inputs.run_tests }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
+          cache: ${{ inputs.package_manager }}
+
+      - name: Install dependencies
+        if: ${{ inputs.run_tests }}
+        run: |
+          if [ "${{ inputs.package_manager }}" = "npm" ]; then
+            npm ci
+          elif [ "${{ inputs.package_manager }}" = "yarn" ]; then
+            yarn install --frozen-lockfile
+          elif [ "${{ inputs.package_manager }}" = "pnpm" ]; then
+            pnpm install --frozen-lockfile
+          fi
+
+      - name: Run tests
+        if: ${{ inputs.run_tests }}
+        id: test
+        run: |
+          if [ "${{ inputs.package_manager }}" = "npm" ]; then
+            npm test || true
+          elif [ "${{ inputs.package_manager }}" = "yarn" ]; then
+            yarn test || true
+          elif [ "${{ inputs.package_manager }}" = "pnpm" ]; then
+            pnpm test || true
+          fi
+
+      - name: Validate TypeScript functions
+        if: ${{ inputs.functions_json != '[]' }}
+        run: |
+          echo "## Function Validation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          node - <<'JS'
+          const fs = require('fs');
+          const path = require('path');
+          const { execSync } = require('child_process');
+
+          const functions = JSON.parse(process.env.FUNCTIONS_JSON || '[]');
+          const errors = [];
+
+          for (const fn of functions) {
+            const fnPath = fn.path;
+            const name = fn.name;
+            
+            const packageJson = path.join(fnPath, 'package.json');
+            if (fs.existsSync(packageJson)) {
+              try {
+                execSync('npm ci', { 
+                  cwd: fnPath, 
+                  stdio: 'pipe' 
+                });
+              } catch (err) {
+                errors.push(`${name}: Failed to install dependencies`);
+                continue;
+              }
+            }
+            
+            const tsconfigPath = path.join(fnPath, 'tsconfig.json');
+            if (fs.existsSync(tsconfigPath)) {
+              try {
+                execSync('npx tsc --noEmit', { 
+                  cwd: fnPath, 
+                  stdio: 'pipe' 
+                });
+              } catch (err) {
+                errors.push(`${name}: TypeScript compilation failed`);
+              }
+            } else {
+              function walkDir(dir) {
+                const files = fs.readdirSync(dir);
+                for (const file of files) {
+                  const fullPath = path.join(dir, file);
+                  const stat = fs.statSync(fullPath);
+                  
+                  if (stat.isDirectory() && !file.startsWith('.') && file !== 'node_modules') {
+                    walkDir(fullPath);
+                  } else if (file.endsWith('.js')) {
+                    try {
+                      execSync(`node --check "${fullPath}"`, { 
+                        stdio: 'pipe' 
+                      });
+                    } catch (err) {
+                      errors.push(`${fullPath}: Syntax error`);
+                    }
+                  }
+                }
+              }
+              
+              try {
+                walkDir(fnPath);
+              } catch (err) {
+                errors.push(`${name}: Failed to validate files`);
+              }
+            }
+          }
+
+          if (errors.length > 0) {
+            console.log("❌ Function validation failed:");
+            errors.forEach(e => console.log(`  - ${e}`));
+            process.exit(1);
+          } else {
+            console.log("✅ All functions validated successfully");
+          }
+          JS
+
+      - name: Validation Summary
+        if: always()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "**Target:** ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY

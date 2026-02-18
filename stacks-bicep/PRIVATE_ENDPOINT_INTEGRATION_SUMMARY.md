@@ -1,0 +1,106 @@
+# Private Endpoint Integration Summary
+
+## What We've Accomplished
+
+### ✅ Bicep Template Updates
+1. **Key Vault Templates** - All 8 Key Vault templates updated with private endpoint configuration:
+   - `rg-acemgtkv-dev-usw2-001` and `rg-acemgtkv-prd-usw2-001`
+   - `rg-aceanakv-dev-usw2-001` and `rg-aceanakv-prd-usw2-001` 
+   - `rg-aceedmkv-dev-usw2-001` and `rg-aceedmkv-prd-usw2-001`
+   - `rg-aceapdkv-dev-usw2-001` and `rg-aceapdkv-prd-usw2-001`
+
+2. **App Service Plan Templates** - All 8 App Service Plan templates updated:
+   - `rg-acemgt-dev-usw2-001` and `rg-acemgt-prd-usw2-001`
+   - `rg-aceana-dev-usw2-001` and `rg-aceana-prd-usw2-001`
+   - `rg-aceedm-dev-usw2-001` and `rg-aceedm-prd-usw2-001` 
+   - `rg-aceapd-dev-usw2-001` and `rg-aceapd-prd-usw2-001`
+
+### ✅ Network Infrastructure Template
+- **VNet Subnet Additions** - Created `vnet-subnet-additions` template to add required subnets:
+  - `snet-app-integration-usw2` (10.65.64.0/27) with Web/serverFarms delegation
+  - `snet-private-endpoints-usw2` (10.65.65.0/27) for private endpoints
+
+### ✅ Parameter File Updates
+- Updated all parameter files (.bicepparam) with network parameters:
+  - `transitVNetResourceId` - Points to existing transit VNet
+  - `appServiceSubnetResourceId` - For App Service VNet integration  
+  - `privateEndpointSubnetResourceId` - For private endpoint connectivity
+
+### ✅ Template Features Added
+- **Private Endpoints**: All Key Vaults and App Services now use private endpoints
+- **Private DNS Zones**: Automatic creation of `privatelink.vaultcore.azure.net` and `privatelink.azurewebsites.net`
+- **VNet Integration**: App Services configured with subnet delegation and VNet routing
+- **Security**: Public network access disabled, network ACLs set to deny by default
+- **SKU Updates**: App Service Plans changed from P1V4 to P1v3 (private endpoint compatible)
+
+## Network Architecture
+
+### Existing Infrastructure Used
+- **Transit VNet**: `vnet-transit-conn-usw2-001` (10.65.0.0/18)
+- **Palo Alto Firewall**: `pfw-fw-usw2-003` (existing security infrastructure)
+- **Subscription**: 7c486f82-99db-43fe-9858-78ae54a74f3b
+- **Resource Group**: rg-transit-conn-usw2
+
+### New Subnets Required
+- **App Integration**: `snet-app-integration-usw2` (10.65.64.0/27)
+- **Private Endpoints**: `snet-private-endpoints-usw2` (10.65.65.0/27)
+
+## Deployment Order
+
+### 1. Deploy Network Infrastructure
+```powershell
+cd bicep\vnet-subnet-additions
+.\deploy-bicep-stack.ps1
+```
+
+### 2. Deploy Resource Groups in Order
+1. **Key Vault Resources** (required by App Services):
+   ```powershell
+   # Deploy all Key Vault resource groups first
+   cd bicep\rg-acemgtkv-dev-usw2-001
+   .\deploy-bicep-stack.ps1
+   
+   cd ..\rg-acemgtkv-prd-usw2-001  
+   .\deploy-bicep-stack.ps1
+   
+   # Department Key Vaults
+   cd ..\rg-aceanakv-dev-usw2-001
+   .\deploy-bicep-stack.ps1
+   # ... continue for all departments
+   ```
+
+2. **App Service Plans** (after Key Vaults exist):
+   ```powershell
+   cd bicep\rg-acemgt-dev-usw2-001
+   .\deploy-bicep-stack.ps1
+   
+   cd ..\rg-acemgt-prd-usw2-001
+   .\deploy-bicep-stack.ps1
+   
+   # Department App Service Plans
+   cd ..\rg-aceana-dev-usw2-001
+   .\deploy-bicep-stack.ps1
+   # ... continue for all departments
+   ```
+
+## Security Benefits Achieved
+
+1. **Zero Trust Network Access**: All services now use private endpoints
+2. **Existing Firewall Integration**: Leverages current Palo Alto VM-Series infrastructure  
+3. **Private DNS Resolution**: All services resolve to private IP addresses
+4. **VNet Isolation**: Traffic stays within Azure backbone, never traverses internet
+5. **Network Segmentation**: Dedicated subnets for different service tiers
+
+## Resource Count
+- **18 Resource Groups** with private endpoint configuration
+- **8 Key Vault** instances with private endpoints
+- **8 App Service Plan** instances with VNet integration
+- **2 New Subnets** in transit VNet
+- **Multiple Private DNS Zones** for service-specific resolution
+
+## Next Steps
+1. Deploy the subnet additions to transit VNet first
+2. Deploy Key Vault resource groups (no dependencies)
+3. Deploy App Service Plan resource groups (depend on subnets existing)
+4. Test private endpoint connectivity through Palo Alto firewall
+5. Validate DNS resolution for private endpoints

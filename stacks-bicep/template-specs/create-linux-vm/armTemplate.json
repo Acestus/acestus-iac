@@ -1,0 +1,124 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "adminUsername": {
+            "type": "string",
+            "defaultValue": "Acestus",
+            "metadata": {
+                "description": "Username for the Virtual Machine."
+            }
+        },
+        "adminPassword": {
+            "type": "securestring",
+            "minLength": 12,
+            "metadata": {
+                "description": "Password for the Virtual Machine."
+            }
+        },
+        "SubnetID": {
+            "type": "string",
+            "defaultValue": "/subscriptions/<subscription-id>/resourceGroups/NetTools/providers/Microsoft.Network/virtualNetworks/vnet-nettools-usw2-001/subnets/default",
+            "metadata": {
+                "description": "Resource ID of the subnet."
+            }
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "projectName": "nettools",
+        "subscriptionName": "SBX-510-Infrastructure",
+        "workloadName1": "[substring(variables('subscriptionName'), 0, indexOf(variables('subscriptionName'), '-'))]",
+        "workloadName2": "[substring(variables('subscriptionName'), 4, indexOf(variables('subscriptionName'), '-'))]",
+        "workloadName": "[concat(variables('workloadName1'), variables('workloadName2'))]",
+        "uniqueNumbers": "[substring(uniqueString(resourceGroup().id, deployment().name), 0, 3)]",
+        "vmName": "[concat('vm-', variables('projectName'), '-', variables('workloadName'), '-usw2-', variables('uniqueNumbers'))]",
+        "VMSize": "Standard_D2s_v3",
+        "nicName": "[concat('nic-', variables('projectName'), '-', variables('workloadName'), '-usw2-', variables('uniqueNumbers'))]",
+        "osDiskName": "[concat('disk-', variables('projectName'), '-', variables('workloadName'), '-usw2-', variables('uniqueNumbers'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2020-06-01",
+            "name": "[variables('nicName')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[parameters('SubnetID')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2020-06-01",
+            "name": "[variables('VMName')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[variables('vmSize')]"
+                },
+                "osProfile": {
+                    "computerName": "[variables('VMName')]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "Canonical",
+                        "offer": "0001-com-ubuntu-server-jammy",
+                        "sku": "22_04-lts-gen2",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "createOption": "fromImage",
+                        "name": "[variables('osDiskName')]"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "https://stnettoolsusw2001.blob.core.windows.net/"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "apiVersion": "2020-06-01",
+            "name": "[concat(variables('vmName'), '/installNetTools')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines', variables('vmName'))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Azure.Extensions",
+                "type": "CustomScript",
+                "typeHandlerVersion": "2.0",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [],
+                    "commandToExecute": "apt-get update && apt-get install -y nmap"
+                }
+            }
+        }
+    ]
+}

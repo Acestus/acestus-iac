@@ -1,0 +1,15 @@
+{
+  "executableFile": "",
+  "defaultLakehouseArtifactId": "19f2860e-7f0e-4264-91ba-ca5c41b08fe4",
+  "mainClass": "",
+  "additionalLakehouseIds": [
+    "d30f246b-9e69-460c-a99d-dd4b10c28d9b"
+  ],
+  "retryPolicy": null,
+  "commandLineArguments": "",
+  "additionalLibraryUris": [
+    "spark_tfm_api_slv_gld.py"
+  ],
+  "language": "Python",
+  "environmentArtifactId": null
+}

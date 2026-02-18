@@ -1,0 +1,178 @@
+name: Reusable PR validation
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        default: dev
+      resource_group_name:
+        type: string
+        required: true
+      template_file:
+        type: string
+        default: infrastructure/main.bicep
+      params_file:
+        type: string
+        default: infrastructure/main.dev.bicepparam
+      functions_json:
+        type: string
+        default: '[]'
+      python_version:
+        type: string
+        default: '3.11'
+      run_tests:
+        type: boolean
+        default: true
+      requirements_file:
+        type: string
+        default: requirements-dev.txt
+      azure_client_id:
+        type: string
+        required: true
+      azure_tenant_id:
+        type: string
+        required: true
+      azure_subscription_id:
+        type: string
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+
+    env:
+      RESOURCE_GROUP_NAME: ${{ inputs.resource_group_name }}
+      TEMPLATE_FILE: ${{ inputs.template_file }}
+      PARAMS_FILE: ${{ inputs.params_file }}
+      FUNCTIONS_JSON: ${{ inputs.functions_json }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ inputs.azure_client_id }}
+          tenant-id: ${{ inputs.azure_tenant_id }}
+          subscription-id: ${{ inputs.azure_subscription_id }}
+          auth-type: SERVICE_PRINCIPAL
+          audience: api://AzureADTokenExchange
+
+      - name: Validate Bicep template
+        id: bicep_validate
+        run: |
+          echo "## Bicep Validation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if az bicep build --file "$TEMPLATE_FILE" 2>&1; then
+            echo "✅ Bicep build successful" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Bicep build failed" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: What-If deployment
+        id: whatif
+        run: |
+          echo "## What-If Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '\`\`\`' >> $GITHUB_STEP_SUMMARY
+
+          az deployment group what-if \
+            --resource-group "$RESOURCE_GROUP_NAME" \
+            --template-file "$TEMPLATE_FILE" \
+            --parameters "$PARAMS_FILE" \
+            --no-pretty-print 2>&1 | tee whatif.txt
+
+          cat whatif.txt >> $GITHUB_STEP_SUMMARY
+          echo '\`\`\`' >> $GITHUB_STEP_SUMMARY
+
+      - name: Setup Python
+        if: ${{ inputs.run_tests }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python_version }}
+          cache: pip
+
+      - name: Install dependencies
+        if: ${{ inputs.run_tests }}
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f "${{ inputs.requirements_file }}" ]; then
+            pip install -r "${{ inputs.requirements_file }}"
+          fi
+
+      - name: Run tests
+        if: ${{ inputs.run_tests }}
+        id: test
+        run: |
+          pytest --cov --cov-report=term-missing || true
+
+      - name: Validate Python functions
+        if: ${{ inputs.functions_json != '[]' }}
+        run: |
+          echo "## Function Validation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+          import sys
+
+          functions = json.loads(os.environ.get('FUNCTIONS_JSON', '[]'))
+          errors = []
+
+          for fn in functions:
+            path = fn['path']
+            name = fn['name']
+            
+            req_file = f"{path}/requirements.txt"
+            if os.path.exists(req_file):
+              result = subprocess.run(
+                ["pip", "install", "-r", req_file, "-q"],
+                capture_output=True,
+                text=True
+              )
+              if result.returncode != 0:
+                errors.append(f"{name}: Failed to install requirements")
+                continue
+            
+            for root, dirs, files in os.walk(path):
+              for f in files:
+                if f.endswith('.py'):
+                  py_file = os.path.join(root, f)
+                  result = subprocess.run(
+                    ["python", "-m", "py_compile", py_file],
+                    capture_output=True,
+                    text=True
+                  )
+                  if result.returncode != 0:
+                    errors.append(f"{py_file}: Syntax error")
+
+          if errors:
+            print("❌ Function validation failed:")
+            for e in errors:
+              print(f"  - {e}")
+            sys.exit(1)
+          else:
+            print("✅ All functions validated successfully")
+          PY
+
+      - name: Validation Summary
+        if: always()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "**Target:** ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,42 @@
+{
+  "sources": [
+    {
+      "id": "521258c4-f352-4e85-8d97-b83b6a2fdda0",
+      "name": "EventLinks",
+      "type": "AzureBlobStorageEvents",
+      "properties": {
+        "azureBlobStorageEvents": [
+          {
+            "id": "07f412e8-99bc-4327-a3cd-4ca4562d8f13",
+            "azureResourceId": "{{API_STORAGE_RESOURCE_ID}}",
+            "includedEventTypes": [
+              "Microsoft.Storage.BlobCreated",
+              "Microsoft.Storage.BlobDeleted",
+              "Microsoft.Storage.BlobRenamed",
+              "Microsoft.Storage.BlobTierChanged",
+              "Microsoft.Storage.DirectoryCreated",
+              "Microsoft.Storage.DirectoryDeleted",
+              "Microsoft.Storage.DirectoryRenamed",
+              "Microsoft.Storage.BlobInventoryPolicyCompleted",
+              "Microsoft.Storage.AsyncOperationInitiated",
+              "Microsoft.Storage.LifecyclePolicyCompleted"
+            ]
+          }
+        ],
+        "streamEvents": true
+      }
+    }
+  ],
+  "destinations": [],
+  "streams": [
+    {
+      "id": "771b8ee3-97bd-494c-baa5-947480e350c1",
+      "name": "ingest_event_stream-stream",
+      "type": "DefaultStream",
+      "properties": {},
+      "inputNodes": []
+    }
+  ],
+  "operators": [],
+  "compatibilityLevel": "1.1"
+}

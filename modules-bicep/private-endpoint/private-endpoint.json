@@ -1,0 +1,191 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.40.2.10011",
+      "templateHash": "10876227108240179694"
+    },
+    "name": "Acestus Private Endpoint",
+    "description": "Private Endpoint module with Acestus networking standards",
+    "version": "1.0.0"
+  },
+  "parameters": {
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the private endpoint"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for the private endpoint"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags to apply to the resource"
+      }
+    },
+    "subnetId": {
+      "type": "string",
+      "metadata": {
+        "description": "Subnet resource ID where the private endpoint will be created"
+      }
+    },
+    "privateLinkServiceId": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource ID of the resource to connect to"
+      }
+    },
+    "groupIds": {
+      "type": "array",
+      "metadata": {
+        "description": "Group IDs (subresources) to connect to"
+      }
+    },
+    "customNetworkInterfaceName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Custom network interface name"
+      }
+    },
+    "privateDnsZoneGroup": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Private DNS zone group configuration"
+      }
+    },
+    "manualApprovalRequired": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Manual approval required"
+      }
+    },
+    "requestMessage": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Request message for manual approval"
+      }
+    },
+    "ipConfigurations": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "IP configurations for the private endpoint"
+      }
+    },
+    "applicationSecurityGroups": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Application security groups to associate"
+      }
+    }
+  },
+  "variables": {
+    "privateLinkServiceConnection": "[if(parameters('manualApprovalRequired'), null(), createObject('name', format('{0}-connection', parameters('name')), 'properties', createObject('privateLinkServiceId', parameters('privateLinkServiceId'), 'groupIds', parameters('groupIds'))))]",
+    "manualPrivateLinkServiceConnection": "[if(parameters('manualApprovalRequired'), createObject('name', format('{0}-connection', parameters('name')), 'properties', createObject('privateLinkServiceId', parameters('privateLinkServiceId'), 'groupIds', parameters('groupIds'), 'requestMessage', parameters('requestMessage'))), null())]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/privateEndpoints",
+      "apiVersion": "2024-01-01",
+      "name": "[parameters('name')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "copy": [
+          {
+            "name": "ipConfigurations",
+            "count": "[length(parameters('ipConfigurations'))]",
+            "input": {
+              "name": "[parameters('ipConfigurations')[copyIndex('ipConfigurations')].name]",
+              "properties": {
+                "groupId": "[parameters('ipConfigurations')[copyIndex('ipConfigurations')].groupId]",
+                "memberName": "[parameters('ipConfigurations')[copyIndex('ipConfigurations')].memberName]",
+                "privateIPAddress": "[parameters('ipConfigurations')[copyIndex('ipConfigurations')].privateIPAddress]"
+              }
+            }
+          },
+          {
+            "name": "applicationSecurityGroups",
+            "count": "[length(parameters('applicationSecurityGroups'))]",
+            "input": {
+              "id": "[parameters('applicationSecurityGroups')[copyIndex('applicationSecurityGroups')]]"
+            }
+          }
+        ],
+        "subnet": {
+          "id": "[parameters('subnetId')]"
+        },
+        "customNetworkInterfaceName": "[if(not(empty(parameters('customNetworkInterfaceName'))), parameters('customNetworkInterfaceName'), null())]",
+        "privateLinkServiceConnections": "[if(not(equals(variables('privateLinkServiceConnection'), null())), createArray(variables('privateLinkServiceConnection')), createArray())]",
+        "manualPrivateLinkServiceConnections": "[if(not(equals(variables('manualPrivateLinkServiceConnection'), null())), createArray(variables('manualPrivateLinkServiceConnection')), createArray())]"
+      }
+    },
+    {
+      "condition": "[not(empty(parameters('privateDnsZoneGroup')))]",
+      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+      "apiVersion": "2024-01-01",
+      "name": "[format('{0}/{1}', parameters('name'), coalesce(tryGet(parameters('privateDnsZoneGroup'), 'name'), 'default'))]",
+      "properties": {
+        "copy": [
+          {
+            "name": "privateDnsZoneConfigs",
+            "count": "[length(coalesce(tryGet(parameters('privateDnsZoneGroup'), 'privateDnsZoneIds'), createArray()))]",
+            "input": {
+              "name": "[replace(split(coalesce(tryGet(parameters('privateDnsZoneGroup'), 'privateDnsZoneIds'), createArray())[copyIndex('privateDnsZoneConfigs')], '/')[8], '.', '-')]",
+              "properties": {
+                "privateDnsZoneId": "[coalesce(tryGet(parameters('privateDnsZoneGroup'), 'privateDnsZoneIds'), createArray())[copyIndex('privateDnsZoneConfigs')]]"
+              }
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/privateEndpoints', parameters('name'))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "resourceId": {
+      "type": "string",
+      "metadata": {
+        "description": "The resource ID of the private endpoint"
+      },
+      "value": "[resourceId('Microsoft.Network/privateEndpoints', parameters('name'))]"
+    },
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the private endpoint"
+      },
+      "value": "[parameters('name')]"
+    },
+    "networkInterfaceId": {
+      "type": "string",
+      "metadata": {
+        "description": "The network interface resource ID"
+      },
+      "value": "[reference(resourceId('Microsoft.Network/privateEndpoints', parameters('name')), '2024-01-01').networkInterfaces[0].id]"
+    },
+    "customDnsConfigs": {
+      "type": "array",
+      "metadata": {
+        "description": "The custom DNS configurations"
+      },
+      "value": "[reference(resourceId('Microsoft.Network/privateEndpoints', parameters('name')), '2024-01-01').customDnsConfigs]"
+    }
+  }
+}

@@ -1,0 +1,70 @@
+# GitHub Actions workflow for building and pushing containers to ACR
+# Triggers when changes are pushed to tst branch
+
+name: Containers - Test
+
+on:
+  push:
+    branches:
+      - tst
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID_DEV }}
+  AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  ACR_NAME: <your-acr-name>
+  ACR_LOGIN_SERVER: <your-acr-name>.azurecr.io
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app:
+          - name: api-traffic
+            context: ./api-traffic
+          - name: fabric-sync
+            context: ./fabric-sync
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ env.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login to ACR
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Set image tag
+        id: tag
+        run: |
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          echo "sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+          echo "timestamp=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+
+      - name: Build and push ${{ matrix.app.name }}
+        run: |
+          docker build \
+            -t ${{ env.ACR_LOGIN_SERVER }}/${{ matrix.app.name }}:${{ steps.tag.outputs.sha }} \
+            -t ${{ env.ACR_LOGIN_SERVER }}/${{ matrix.app.name }}:latest \
+            ${{ matrix.app.context }}
+
+          docker push ${{ env.ACR_LOGIN_SERVER }}/${{ matrix.app.name }}:${{ steps.tag.outputs.sha }}
+          docker push ${{ env.ACR_LOGIN_SERVER }}/${{ matrix.app.name }}:latest
+
+      - name: Output image details
+        run: |
+          echo "### Image pushed successfully :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** \`${{ env.ACR_LOGIN_SERVER }}/${{ matrix.app.name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Tags:** \`${{ steps.tag.outputs.sha }}\`, \`latest\`" >> $GITHUB_STEP_SUMMARY

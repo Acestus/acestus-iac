@@ -1,0 +1,140 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.40.2.10011",
+      "templateHash": "4999998913200189327"
+    },
+    "name": "Acestus Data Collection Rule",
+    "description": "Data Collection Rule module with Acestus monitoring standards",
+    "version": "1.0.0"
+  },
+  "parameters": {
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the data collection rule"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for the data collection rule"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags to apply to the resource"
+      }
+    },
+    "ruleDescription": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Description of the data collection rule"
+      }
+    },
+    "kind": {
+      "type": "string",
+      "defaultValue": "Linux",
+      "allowedValues": [
+        "Linux",
+        "Windows",
+        "AgentDirectToStore",
+        "WorkspaceTransforms"
+      ],
+      "metadata": {
+        "description": "Kind of data collection rule"
+      }
+    },
+    "dataCollectionEndpointId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Data collection endpoint resource ID"
+      }
+    },
+    "streamDeclarations": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Stream declarations for custom logs"
+      }
+    },
+    "dataSources": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Data sources configuration"
+      }
+    },
+    "destinations": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Destinations configuration"
+      }
+    },
+    "dataFlows": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Data flows configuration"
+      }
+    },
+    "identity": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Identity configuration"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Insights/dataCollectionRules",
+      "apiVersion": "2023-03-11",
+      "name": "[parameters('name')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "kind": "[parameters('kind')]",
+      "identity": "[if(not(empty(parameters('identity'))), parameters('identity'), null())]",
+      "properties": {
+        "description": "[parameters('ruleDescription')]",
+        "dataCollectionEndpointId": "[if(not(empty(parameters('dataCollectionEndpointId'))), parameters('dataCollectionEndpointId'), null())]",
+        "streamDeclarations": "[if(not(empty(parameters('streamDeclarations'))), parameters('streamDeclarations'), null())]",
+        "dataSources": "[parameters('dataSources')]",
+        "destinations": "[parameters('destinations')]",
+        "dataFlows": "[parameters('dataFlows')]"
+      }
+    }
+  ],
+  "outputs": {
+    "resourceId": {
+      "type": "string",
+      "metadata": {
+        "description": "The resource ID of the data collection rule"
+      },
+      "value": "[resourceId('Microsoft.Insights/dataCollectionRules', parameters('name'))]"
+    },
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the data collection rule"
+      },
+      "value": "[parameters('name')]"
+    },
+    "immutableId": {
+      "type": "string",
+      "metadata": {
+        "description": "The immutable ID of the data collection rule"
+      },
+      "value": "[reference(resourceId('Microsoft.Insights/dataCollectionRules', parameters('name')), '2023-03-11').immutableId]"
+    }
+  }
+}

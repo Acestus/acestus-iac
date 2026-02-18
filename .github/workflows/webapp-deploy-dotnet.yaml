@@ -1,0 +1,114 @@
+name: Deploy .NET Web App
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "Deployment environment (e.g., dev, prd)"
+        required: true
+        type: string
+      azure_tenant_id:
+        description: "Azure Tenant ID"
+        required: true
+        type: string
+      azure_client_id:
+        description: "Azure Client ID (User Managed Identity)"
+        required: true
+        type: string
+      azure_subscription_id:
+        description: "Azure Subscription ID"
+        required: true
+        type: string
+      resource_group_name:
+        description: "Resource group for deployment stack"
+        required: true
+        type: string
+      stack_name:
+        description: "Deployment stack name"
+        required: true
+        type: string
+      template_file:
+        description: "Path to Bicep template file"
+        required: true
+        type: string
+      params_file:
+        description: "Path to Bicep parameters file"
+        required: true
+        type: string
+      infra_path_prefix:
+        description: "Infrastructure path prefix for change detection"
+        required: false
+        type: string
+        default: "infrastructure/"
+      dotnet_version:
+        description: ".NET SDK version"
+        required: false
+        type: string
+        default: "8.0"
+      webapp_name:
+        description: "Azure Web App name"
+        required: true
+        type: string
+      project_path:
+        description: "Path to .NET project file"
+        required: true
+        type: string
+      publish_path:
+        description: "Path for published output"
+        required: false
+        type: string
+        default: "./publish"
+
+jobs:
+  deploy-infra:
+    # Replace with your own infrastructure workflow or inline deployment steps
+    # uses: your-org/your-repo/.github/workflows/func-deploy-dotnet.yaml@main
+    uses: ./.github/workflows/aks-deploy-dotnet.yaml
+    with:
+      environment: ${{ inputs.environment }}
+      azure_tenant_id: ${{ inputs.azure_tenant_id }}
+      azure_client_id: ${{ inputs.azure_client_id }}
+      azure_subscription_id: ${{ inputs.azure_subscription_id }}
+      resource_group_name: ${{ inputs.resource_group_name }}
+      stack_name: ${{ inputs.stack_name }}
+      template_file: ${{ inputs.template_file }}
+      params_file: ${{ inputs.params_file }}
+      infra_path_prefix: ${{ inputs.infra_path_prefix }}
+      dotnet_version: ${{ inputs.dotnet_version }}
+      functions_json: "[]"
+
+  deploy-webapp:
+    needs: deploy-infra
+    runs-on: ubuntu-24.04
+    environment: ${{ inputs.environment }}
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ inputs.dotnet_version }}
+
+      - name: Build and publish
+        run: |
+          dotnet restore ${{ inputs.project_path }}
+          dotnet publish ${{ inputs.project_path }} -c Release -o ${{ inputs.publish_path }}
+
+      - name: Login with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ inputs.azure_client_id }}
+          tenant-id: ${{ inputs.azure_tenant_id }}
+          subscription-id: ${{ inputs.azure_subscription_id }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ inputs.webapp_name }}
+          package: ${{ inputs.publish_path }}

@@ -1,0 +1,130 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.40.2.10011",
+      "templateHash": "8816170551579603002"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "Global",
+      "metadata": {
+        "description": "The location for all resources."
+      }
+    },
+    "namePrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "The name prefix for resources."
+      }
+    },
+    "environmentSuffix": {
+      "type": "string",
+      "metadata": {
+        "description": "The environment suffix."
+      }
+    },
+    "locationSuffix": {
+      "type": "string",
+      "metadata": {
+        "description": "The location suffix."
+      }
+    },
+    "instanceSuffix": {
+      "type": "string",
+      "metadata": {
+        "description": "The instance number suffix."
+      }
+    },
+    "alertEmailAddress": {
+      "type": "string",
+      "metadata": {
+        "description": "Email address for alerts."
+      }
+    },
+    "functionAppResourceId": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource ID of the Function App for Teams alerts."
+      }
+    },
+    "functionAppDefaultHostname": {
+      "type": "string",
+      "metadata": {
+        "description": "Default hostname of the Function App."
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags to be applied to all resources."
+      }
+    }
+  },
+  "variables": {
+    "commonTags": "[union(parameters('tags'), createObject('Environment', parameters('environmentSuffix'), 'ManagedBy', 'Bicep'))]",
+    "emailActionGroupName": "[format('ag-{0}-email-{1}-{2}-{3}', parameters('namePrefix'), parameters('environmentSuffix'), parameters('locationSuffix'), parameters('instanceSuffix'))]",
+    "teamsActionGroupName": "[format('ag-{0}-teams-{1}-{2}-{3}', parameters('namePrefix'), parameters('environmentSuffix'), parameters('locationSuffix'), parameters('instanceSuffix'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Insights/actionGroups",
+      "apiVersion": "2024-10-01-preview",
+      "name": "[variables('emailActionGroupName')]",
+      "location": "[parameters('location')]",
+      "tags": "[variables('commonTags')]",
+      "properties": {
+        "groupShortName": "Email",
+        "enabled": true,
+        "emailReceivers": [
+          {
+            "name": "AlertEmail",
+            "emailAddress": "[parameters('alertEmailAddress')]",
+            "useCommonAlertSchema": true
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Insights/actionGroups",
+      "apiVersion": "2024-10-01-preview",
+      "name": "[variables('teamsActionGroupName')]",
+      "location": "[parameters('location')]",
+      "tags": "[variables('commonTags')]",
+      "properties": {
+        "groupShortName": "Teams",
+        "enabled": true,
+        "azureFunctionReceivers": [
+          {
+            "name": "AlertTransformer",
+            "functionAppResourceId": "[parameters('functionAppResourceId')]",
+            "functionName": "Alert_Transformer",
+            "httpTriggerUrl": "[format('https://{0}/api/Alert_Transformer', parameters('functionAppDefaultHostname'))]",
+            "useCommonAlertSchema": true
+          }
+        ]
+      }
+    }
+  ],
+  "outputs": {
+    "emailActionGroupResourceId": {
+      "type": "string",
+      "metadata": {
+        "description": "The resource ID of the email action group."
+      },
+      "value": "[resourceId('Microsoft.Insights/actionGroups', variables('emailActionGroupName'))]"
+    },
+    "teamsActionGroupResourceId": {
+      "type": "string",
+      "metadata": {
+        "description": "The resource ID of the teams action group."
+      },
+      "value": "[resourceId('Microsoft.Insights/actionGroups', variables('teamsActionGroupName'))]"
+    }
+  }
+}

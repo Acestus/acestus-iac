@@ -1,0 +1,121 @@
+@startuml time-logger-architecture
+!define RECTANGLE class
+
+title Time Logger Template - AKS + Fabric Medallion Architecture
+
+left to right direction
+
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontSize 10
+skinparam rectangleBorderColor #333333
+skinparam rectangleBackgroundColor #FAFAFA
+
+' Color definitions
+skinparam rectangle {
+    BackgroundColor<<source>> #FFEECC
+    BorderColor<<source>> #FF8C00
+    BackgroundColor<<aks>> #E6F3FF
+    BorderColor<<aks>> #0078D4
+    BackgroundColor<<azure>> #F0F0F0
+    BorderColor<<azure>> #666666
+    BackgroundColor<<fabric>> #FFF5EE
+    BorderColor<<fabric>> #FF6600
+    BackgroundColor<<bronze>> #CD7F32
+    BackgroundColor<<silver>> #C0C0C0
+    BackgroundColor<<gold>> #FFD700
+    BackgroundColor<<powerbi>> #F2C811
+    BorderColor<<powerbi>> #E8B800
+}
+
+' ===== LEFT SIDE: Source System =====
+rectangle "«source»\nExternal Data Source" as source <<source>> {
+}
+
+' ===== AKS Cluster =====
+rectangle "AKS Cluster (aks-timelogger-dev-usw2-001)" as aks <<aks>> {
+    rectangle "api-traffic\n(HTTP API)" as apiTraffic
+    rectangle "time-logger\n(CronJob)" as timeLogger
+    rectangle "fabric-sync\n(Fabric API Client)" as fabricSync
+}
+
+' ===== Azure Resources =====
+rectangle "sttimeloggerdevusw2001\n(Azure Blob Storage)\nLanding Zone - Raw Files" as storage <<azure>>
+
+rectangle "ai-timelogger-dev-usw2-001\n(Application Insights)\nMonitoring & Telemetry" as appInsights <<azure>>
+
+rectangle "umi-timelogger-dev-usw2-001\n(Managed Identity)\nPasswordless Auth" as umi <<azure>>
+
+' ===== Fabric Workspace =====
+rectangle "Microsoft Fabric\nws-fabric-dev\n(Git Integrated)" as fabric <<fabric>> {
+
+    rectangle "Lakehouse - Medallion Architecture" as medallion {
+        rectangle "pl_ing_data_brz\n(Pipeline / Dataflow)" as pipeline <<fabric>>
+
+        rectangle "lh_data_brz\nBronze\n(Raw Data)" as bronze <<bronze>>
+
+        rectangle "lh_data_slv\nSilver\n(Cleansed)" as silver <<silver>>
+
+        rectangle "lh_data_gld\nGold\n(Curated)" as gold <<gold>>
+    }
+
+    rectangle "Notebooks & Jobs" as notebooks {
+        rectangle "nb_tfm_data_brz_slv" as nbBrzSlv
+        rectangle "nb_tfm_data_slv_gld" as nbSlvGld
+        rectangle "nb_data_scripts" as nbScripts
+    }
+
+    rectangle "ingest_event_stream\n(Eventstream)" as eventstream <<fabric>>
+}
+
+' ===== Power BI =====
+rectangle "Power BI / API\n(Analytics & Distribution)" as powerbi <<powerbi>>
+
+' ===== Connections =====
+source --> storage : "0. Source data"storage --> eventstream : "Blob events"storage --> pipeline : "2. Pick up\nraw files"
+pipeline --> bronze : "3. Load raw\n(as-is JSON)"
+
+bronze --> silver : "4. Transform & cleanse\n(validation, dedup, standardization)"
+silver --> gold : "5. Aggregate & curate\n(KPIs, facts, dimensions)"
+
+gold --> powerbi : "6. Distribute data"
+
+' AKS connections
+timeLogger --> storage : "1. Write raw\ntemporary files"
+fabricSync --> fabric : "Push definitions\nvia REST API"
+
+' Identity connections
+umi -[dotted]-> fabric : "authenticate"
+umi -[dotted]-> storage : "authenticate"
+
+' Telemetry
+apiTraffic -[dotted]-> appInsights : "telemetry"
+timeLogger -[dotted]-> appInsights : "telemetry"
+fabricSync -[dotted]-> appInsights : "telemetry"
+
+' Notebook connections
+nbBrzSlv -[dotted]-> bronze
+nbBrzSlv -[dotted]-> silver
+nbSlvGld -[dotted]-> silver
+nbSlvGld -[dotted]-> gold
+
+' Legend
+legend right
+|= Component |= CAF Name |= Purpose |
+| External Source | - | Source system |
+| App Insights | ai-timelogger-dev-usw2-001 | Monitoring & telemetry |
+| Managed Identity | umi-timelogger-dev-usw2-001 | Passwordless authentication |
+| AKS Cluster | aks-timelogger-dev-usw2-001 | Container orchestration |
+| fabric-sync | - | Fabric API client |
+| Storage Account | sttimeloggerdevusw2001 | Landing zone |
+| Workspace | ws-fabric-dev | Fabric workspace (Git integrated) |
+| Pipeline | pl_ing_data_brz | Ingestion pipeline |
+| Eventstream | ingest_event_stream | Blob storage events |
+| Bronze Lake | lh_data_brz | Raw data layer |
+| Silver Lake | lh_data_slv | Cleansed data layer |
+| Gold Lake | lh_data_gld | Business-ready layer |
+| Power BI/API | - | Analytics & distribution |
+endlegend
+
+footer Input volume: ~100 GB JSON | Processing: Event-driven over time | Not continuous streaming | Estimated end-to-end time: ~75 s per batch
+
+@enduml

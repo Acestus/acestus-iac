@@ -1,0 +1,362 @@
+name: Reusable AKS deploy (dotnet)
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        default: prd
+      resource_group_name:
+        type: string
+        required: true
+      stack_name:
+        type: string
+        required: true
+      template_file:
+        type: string
+        default: infrastructure/main.bicep
+      params_file:
+        type: string
+        default: infrastructure/main.prd.bicepparam
+      infra_path_prefix:
+        type: string
+        default: infrastructure/
+      force_infra:
+        type: boolean
+        default: false
+      applications_json:
+        type: string
+        default: "[]"
+        description: 'JSON array of applications to deploy: [{"path": "src/app", "name": "app-name", "image": "app-image", "dockerfile": "Dockerfile"}]'
+      dotnet_version:
+        type: string
+        default: "8.0"
+      azure_client_id:
+        type: string
+        required: true
+      azure_tenant_id:
+        type: string
+        required: true
+      azure_subscription_id:
+        type: string
+        required: true
+      acr_name:
+        type: string
+        required: true
+        description: "Azure Container Registry name (without .azurecr.io)"
+      aks_cluster_name:
+        type: string
+        required: true
+        description: "AKS cluster name for deployment"
+      k8s_namespace:
+        type: string
+        default: "default"
+        description: "Kubernetes namespace for deployment"
+      storage_account_name:
+        type: string
+        required: false
+        description: "Storage account name for time-logger secret (optional, auto-detected from stack outputs)"
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    environment:
+      name: ${{ inputs.environment }}
+
+    env:
+      RESOURCE_GROUP_NAME: ${{ inputs.resource_group_name }}
+      TEMPLATE_FILE: ${{ inputs.template_file }}
+      PARAMS_FILE: ${{ inputs.params_file }}
+      INFRA_PATH_PREFIX: ${{ inputs.infra_path_prefix }}
+      STACK_NAME: ${{ inputs.stack_name }}
+      APPLICATIONS_JSON: ${{ inputs.applications_json }}
+      FORCE_INFRA: ${{ inputs.force_infra }}
+      ACR_NAME: ${{ inputs.acr_name }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Login with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ inputs.azure_client_id }}
+          tenant-id: ${{ inputs.azure_tenant_id }}
+          subscription-id: ${{ inputs.azure_subscription_id }}
+          auth-type: SERVICE_PRINCIPAL
+          audience: api://AzureADTokenExchange
+
+      - name: Check for infrastructure changes
+        id: infra_changes
+        run: |
+          if [ "${FORCE_INFRA}" = "true" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          elif git diff --name-only HEAD~1 HEAD | grep -q "^${INFRA_PATH_PREFIX}"; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy Bicep template
+        if: steps.infra_changes.outputs.changed == 'true'
+        run: |
+          az stack group create \
+            --name "$STACK_NAME" \
+            --resource-group "$RESOURCE_GROUP_NAME" \
+            --template-file "$TEMPLATE_FILE" \
+            --parameters "$PARAMS_FILE" \
+            --action-on-unmanage deleteResources \
+            --deny-settings-mode none \
+            --yes
+
+      - name: Setup .NET
+        if: ${{ inputs.applications_json != '[]' }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ inputs.dotnet_version }}
+
+      - name: Set up Docker Buildx
+        if: ${{ inputs.applications_json != '[]' }}
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Azure Container Registry
+        if: ${{ inputs.applications_json != '[]' }}
+        run: |
+          az acr login --name "$ACR_NAME"
+
+      - name: Build and Push Container Images
+        if: ${{ inputs.applications_json != '[]' }}
+        shell: bash
+        run: |
+          APPLICATIONS='${{ inputs.applications_json }}'
+          FAILED=0
+          IMAGE_TAGS=""
+
+          for row in $(echo "${APPLICATIONS}" | jq -r '.[] | @base64'); do
+            _jq() {
+              echo ${row} | base64 --decode | jq -r "${1}"
+            }
+
+            APP_PATH=$(_jq '.path')
+            APP_NAME=$(_jq '.name')
+            IMAGE_NAME=$(_jq '.image')
+            DOCKERFILE=$(_jq '.dockerfile // "Dockerfile"')
+
+            echo "Building application: $APP_NAME"
+
+            # Generate image tag
+            IMAGE_TAG="${ACR_NAME}.azurecr.io/${IMAGE_NAME}:${{ github.sha }}"
+            IMAGE_LATEST="${ACR_NAME}.azurecr.io/${IMAGE_NAME}:latest"
+
+            # Check if Dockerfile exists
+            if [ ! -f "$APP_PATH/$DOCKERFILE" ]; then
+              echo "❌ Dockerfile not found at $APP_PATH/$DOCKERFILE"
+              FAILED=1
+              continue
+            fi
+
+            # Build and push image
+            echo "Building and pushing $IMAGE_TAG..."
+            if docker build \
+              -t "$IMAGE_TAG" \
+              -t "$IMAGE_LATEST" \
+              -f "$APP_PATH/$DOCKERFILE" \
+              "$APP_PATH"; then
+
+              echo "✅ Build successful for $APP_NAME"
+
+              if docker push "$IMAGE_TAG" && docker push "$IMAGE_LATEST"; then
+                echo "✅ Push successful for $APP_NAME"
+
+                # Store image tag for ArgoCD deployment
+                if [ -z "$IMAGE_TAGS" ]; then
+                  IMAGE_TAGS="${APP_NAME}=${IMAGE_TAG}"
+                else
+                  IMAGE_TAGS="${IMAGE_TAGS},${APP_NAME}=${IMAGE_TAG}"
+                fi
+              else
+                echo "❌ Push failed for $APP_NAME"
+                FAILED=1
+              fi
+            else
+              echo "❌ Build failed for $APP_NAME"
+              FAILED=1
+            fi
+          done
+
+          if [ $FAILED -eq 1 ]; then
+            echo "One or more application builds/pushes failed"
+            exit 1
+          fi
+
+          # Export image tags for ArgoCD step
+          echo "image_tags=$IMAGE_TAGS" >> $GITHUB_OUTPUT
+        id: build_push
+
+      - name: Get AKS credentials
+        if: ${{ inputs.applications_json != '[]' }}
+        run: |
+          az aks get-credentials \
+            --resource-group "$RESOURCE_GROUP_NAME" \
+            --name "${{ inputs.aks_cluster_name }}" \
+            --overwrite-existing
+
+      - name: Create namespace if not exists
+        if: ${{ inputs.applications_json != '[]' }}
+        run: |
+          kubectl create namespace ${{ inputs.k8s_namespace }} --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Create storage secret for time-logger
+        if: ${{ inputs.applications_json != '[]' }}
+        shell: bash
+        run: |
+          # REQUIRED PERMISSIONS:
+          # Service principal/managed identity must have "Storage Blob Data Reader" role
+          # on source storage accounts (e.g., stapidevusw2001) for copy operations.
+          # See MANAGED-IDENTITY-SETUP.md for complete permission requirements.
+
+          APPLICATIONS='${{ inputs.applications_json }}'
+
+          # Check if time-logger is in the applications list
+          if echo "${APPLICATIONS}" | jq -e '.[] | select(.name == "time-logger")' > /dev/null; then
+            echo "Creating storage secret for time-logger..."
+
+            # Use provided storage account name or try to get from stack outputs
+            STORAGE_ACCOUNT="${{ inputs.storage_account_name }}"
+
+            if [ -z "$STORAGE_ACCOUNT" ]; then
+              STORAGE_ACCOUNT=$(az stack group show \
+                --name "$STACK_NAME" \
+                --resource-group "$RESOURCE_GROUP_NAME" \
+                --query "outputs.storageAccountName.value" -o tsv 2>/dev/null || echo "")
+            fi
+
+            if [ -z "$STORAGE_ACCOUNT" ]; then
+              echo "⚠️ Warning: Could not determine storage account name"
+              exit 0
+            fi
+
+            echo "Using storage account: $STORAGE_ACCOUNT"
+
+            CONNECTION_STRING=$(az storage account show-connection-string \
+              --name "$STORAGE_ACCOUNT" \
+              --resource-group "$RESOURCE_GROUP_NAME" \
+              --query connectionString -o tsv)
+
+            if [ -n "$CONNECTION_STRING" ]; then
+              kubectl create secret generic storage-secret \
+                --from-literal=connection-string="$CONNECTION_STRING" \
+                -n ${{ inputs.k8s_namespace }} \
+                --dry-run=client -o yaml | kubectl apply -f -
+              echo "✅ Storage secret created"
+            else
+              echo "❌ Failed to get storage connection string"
+            fi
+          fi
+
+      - name: Deploy to AKS
+        if: ${{ inputs.applications_json != '[]' }}
+        shell: bash
+        run: |
+          APPLICATIONS='${{ inputs.applications_json }}'
+
+          for row in $(echo "${APPLICATIONS}" | jq -r '.[] | @base64'); do
+            _jq() {
+              echo ${row} | base64 --decode | jq -r "${1}"
+            }
+
+            APP_NAME=$(_jq '.name')
+            IMAGE_NAME=$(_jq '.image')
+            IMAGE_TAG="${ACR_NAME}.azurecr.io/${IMAGE_NAME}:${{ github.sha }}"
+
+            echo "Deploying $APP_NAME to AKS..."
+
+            # Apply Kubernetes manifests
+            if [ -d "k8s/${APP_NAME}" ]; then
+              # Apply the manifests
+              kubectl apply -f "k8s/${APP_NAME}/" -n ${{ inputs.k8s_namespace }}
+
+              # Determine resource type by checking manifest files
+              RESOURCE_KIND=$(grep -l "kind: CronJob" k8s/${APP_NAME}/*.yaml k8s/${APP_NAME}/*.yml 2>/dev/null || echo "")
+
+              # Set the new image tag based on resource type
+              if [ -n "$RESOURCE_KIND" ]; then
+                # It's a CronJob
+                kubectl set image cronjob/${APP_NAME} \
+                  ${APP_NAME}=${IMAGE_TAG} \
+                  -n ${{ inputs.k8s_namespace }}
+                echo "✅ Deployed ${APP_NAME} (CronJob)"
+              else
+                # It's a Deployment
+                kubectl set image deployment/${APP_NAME} \
+                  ${APP_NAME}=${IMAGE_TAG} \
+                  -n ${{ inputs.k8s_namespace }}
+                echo "✅ Deployed ${APP_NAME} (Deployment)"
+              fi
+            else
+              echo "⚠️ Warning: k8s/${APP_NAME}/ directory not found"
+            fi
+          done
+
+      - name: Wait for deployments to be ready
+        if: ${{ inputs.applications_json != '[]' }}
+        shell: bash
+        run: |
+          APPLICATIONS='${{ inputs.applications_json }}'
+
+          for row in $(echo "${APPLICATIONS}" | jq -r '.[] | @base64'); do
+            _jq() {
+              echo ${row} | base64 --decode | jq -r "${1}"
+            }
+
+            APP_NAME=$(_jq '.name')
+
+            # Check if it's a CronJob (skip rollout status)
+            if kubectl get cronjob ${APP_NAME} -n ${{ inputs.k8s_namespace }} &> /dev/null; then
+              echo "✅ ${APP_NAME} is a CronJob - deployed successfully"
+              kubectl get cronjob ${APP_NAME} -n ${{ inputs.k8s_namespace }}
+            else
+              echo "Waiting for ${APP_NAME} deployment to be ready..."
+              kubectl rollout status deployment/${APP_NAME} -n ${{ inputs.k8s_namespace }} --timeout=5m
+
+              if [ $? -eq 0 ]; then
+                echo "✅ ${APP_NAME} is ready"
+              else
+                echo "❌ ${APP_NAME} failed to become ready"
+                exit 1
+              fi
+            fi
+          done
+
+      - name: Deployment Summary
+        if: always()
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **AKS Cluster**: ${{ inputs.aks_cluster_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Namespace**: ${{ inputs.k8s_namespace }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Resource Group**: ${{ inputs.resource_group_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image Tag**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployed Applications" >> $GITHUB_STEP_SUMMARY
+
+          APPLICATIONS='${{ inputs.applications_json }}'
+          for row in $(echo "${APPLICATIONS}" | jq -r '.[] | @base64'); do
+            _jq() {
+              echo ${row} | base64 --decode | jq -r "${1}"
+            }
+            APP_NAME=$(_jq '.name')
+            IMAGE_NAME=$(_jq '.image')
+            echo "- **${APP_NAME}**: ${ACR_NAME}.azurecr.io/${IMAGE_NAME}:${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          done

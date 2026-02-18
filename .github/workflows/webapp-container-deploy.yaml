@@ -1,0 +1,145 @@
+name: Reusable deploy webapp container
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        default: dev
+      resource_group_name:
+        type: string
+        required: true
+      webapp_name:
+        type: string
+        required: true
+      image_name_and_tag:
+        type: string
+        required: true
+      registry_login_server:
+        type: string
+        default: ''
+      slot_name:
+        type: string
+        default: ''
+      restart_app:
+        type: boolean
+        default: true
+      azure_client_id:
+        type: string
+        required: true
+      azure_tenant_id:
+        type: string
+        required: true
+      azure_subscription_id:
+        type: string
+        required: true
+      registry_username:
+        type: string
+        default: ''
+      registry_password:
+        type: string
+        default: ''
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: webapp-container-${{ inputs.environment }}-${{ inputs.webapp_name }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    environment: ${{ inputs.environment }}
+
+    env:
+      RESOURCE_GROUP_NAME: ${{ inputs.resource_group_name }}
+      WEBAPP_NAME: ${{ inputs.webapp_name }}
+      IMAGE_NAME: ${{ inputs.image_name_and_tag }}
+      REGISTRY_LOGIN_SERVER: ${{ inputs.registry_login_server }}
+      SLOT_NAME: ${{ inputs.slot_name }}
+      RESTART_APP: ${{ inputs.restart_app }}
+      REGISTRY_USERNAME: ${{ inputs.registry_username }}
+      REGISTRY_PASSWORD: ${{ inputs.registry_password }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Login with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ inputs.azure_client_id }}
+          tenant-id: ${{ inputs.azure_tenant_id }}
+          subscription-id: ${{ inputs.azure_subscription_id }}
+          auth-type: SERVICE_PRINCIPAL
+          audience: api://AzureADTokenExchange
+
+      - name: Resolve registry server
+        id: registry
+        shell: bash
+        run: |
+          server="${REGISTRY_LOGIN_SERVER}"
+          if [ -z "$server" ]; then
+            if [[ "$IMAGE_NAME" == *".azurecr.io/"* ]]; then
+              login_server="${IMAGE_NAME%%/*}"
+              server="https://${login_server}"
+            fi
+          fi
+
+          echo "registry_server=$server" >> $GITHUB_OUTPUT
+
+      - name: Update web app container
+        shell: bash
+        run: |
+          cmd=(az webapp config container set \
+            --resource-group "$RESOURCE_GROUP_NAME" \
+            --name "$WEBAPP_NAME" \
+            --docker-custom-image-name "$IMAGE_NAME")
+
+          if [ -n "${{ steps.registry.outputs.registry_server }}" ]; then
+            cmd+=(--docker-registry-server-url "${{ steps.registry.outputs.registry_server }}")
+          fi
+
+          if [ -n "$SLOT_NAME" ]; then
+            cmd+=(--slot "$SLOT_NAME")
+          fi
+
+          if [ -n "$REGISTRY_USERNAME" ] && [ -n "$REGISTRY_PASSWORD" ]; then
+            cmd+=(--docker-registry-server-user "$REGISTRY_USERNAME")
+            cmd+=(--docker-registry-server-password "$REGISTRY_PASSWORD")
+          fi
+
+          echo "Running: ${cmd[*]}"
+          "${cmd[@]}"
+
+      - name: Restart web app
+        if: ${{ inputs.restart_app }}
+        shell: bash
+        run: |
+          cmd=(az webapp restart \
+            --resource-group "$RESOURCE_GROUP_NAME" \
+            --name "$WEBAPP_NAME")
+
+          if [ -n "$SLOT_NAME" ]; then
+            cmd+=(--slot "$SLOT_NAME")
+          fi
+
+          "${cmd[@]}"
+
+      - name: Deployment Summary
+        if: always()
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Resource Group:** $RESOURCE_GROUP_NAME" >> $GITHUB_STEP_SUMMARY
+          echo "**Web App:** $WEBAPP_NAME" >> $GITHUB_STEP_SUMMARY
+          if [ -n "$SLOT_NAME" ]; then
+            echo "**Slot:** $SLOT_NAME" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "**Image:** $IMAGE_NAME" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY

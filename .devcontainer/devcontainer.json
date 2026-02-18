@@ -1,0 +1,73 @@
+{
+	"name": ".NET AKS Development",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	"features": {
+		"ghcr.io/devcontainers/features/azure-cli:1": {
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
+			"version": "latest",
+			"helm": "latest",
+			"minikube": "none"
+		},
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {
+			"version": "latest"
+		}
+	},
+	"postCreateCommand": "dotnet --version && kubectl version --client && az version",
+	"remoteUser": "vscode",
+	"mounts": [
+		"source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+	],
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-dotnettools.csharp",
+				"ms-dotnettools.csdevkit",
+				"ms-azuretools.vscode-docker",
+				"ms-kubernetes-tools.vscode-kubernetes-tools",
+				"ms-azuretools.vscode-azureresourcegroups",
+				"ms-azuretools.vscode-bicep",
+				"ms-vscode.azurecli",
+				"github.vscode-github-actions",
+				"redhat.vscode-yaml",
+				"ms-vscode-remote.remote-containers"
+			],
+			"settings": {
+				"workbench.startupEditor": "readme",
+				"dotnet.defaultSolution": "api.sln",
+				"omnisharp.enableRoslynAnalyzers": true,
+				"omnisharp.enableEditorConfigSupport": true,
+				"files.exclude": {
+					"**/bin": true,
+					"**/obj": true
+				},
+				"github-actions.workflows.pinned.refresh.enabled": true,
+				"yaml.schemas": {
+					"https://json.schemastore.org/github-workflow.json": ".github/workflows/*.yaml"
+				}
+			}
+		}
+	},
+	"forwardPorts": [
+		8080,
+		5000,
+		5001
+	],
+	"portsAttributes": {
+		"8080": {
+			"label": "Application",
+			"onAutoForward": "notify"
+		},
+		"5000": {
+			"label": "HTTP",
+			"onAutoForward": "notify"
+		},
+		"5001": {
+			"label": "HTTPS",
+			"onAutoForward": "notify"
+		}
+	}
+}

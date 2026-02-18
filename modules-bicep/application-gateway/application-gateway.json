@@ -1,0 +1,289 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.40.2.10011",
+      "templateHash": "17611378493448046351"
+    },
+    "name": "Acestus Application Gateway",
+    "description": "Application Gateway module with Acestus security defaults",
+    "version": "1.0.0"
+  },
+  "parameters": {
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the application gateway"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for the application gateway"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags to apply to the resource"
+      }
+    },
+    "skuName": {
+      "type": "string",
+      "defaultValue": "WAF_v2",
+      "allowedValues": [
+        "Standard_v2",
+        "WAF_v2"
+      ],
+      "metadata": {
+        "description": "SKU name for the application gateway"
+      }
+    },
+    "tier": {
+      "type": "string",
+      "defaultValue": "WAF_v2",
+      "allowedValues": [
+        "Standard_v2",
+        "WAF_v2"
+      ],
+      "metadata": {
+        "description": "Tier for the application gateway"
+      }
+    },
+    "capacity": {
+      "type": "int",
+      "defaultValue": 2,
+      "minValue": 1,
+      "maxValue": 125,
+      "metadata": {
+        "description": "Capacity (instance count) for the application gateway"
+      }
+    },
+    "enableAutoscaling": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Enable autoscaling"
+      }
+    },
+    "minCapacity": {
+      "type": "int",
+      "defaultValue": 1,
+      "minValue": 0,
+      "maxValue": 125,
+      "metadata": {
+        "description": "Minimum capacity for autoscaling"
+      }
+    },
+    "maxCapacity": {
+      "type": "int",
+      "defaultValue": 10,
+      "minValue": 1,
+      "maxValue": 125,
+      "metadata": {
+        "description": "Maximum capacity for autoscaling"
+      }
+    },
+    "zones": {
+      "type": "array",
+      "defaultValue": [
+        "1",
+        "2",
+        "3"
+      ],
+      "metadata": {
+        "description": "Availability zones"
+      }
+    },
+    "subnetId": {
+      "type": "string",
+      "metadata": {
+        "description": "Subnet resource ID for the application gateway"
+      }
+    },
+    "publicIpAddressId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Public IP address resource ID"
+      }
+    },
+    "privateIpAddress": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Private IP address for frontend"
+      }
+    },
+    "firewallPolicyId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "WAF policy resource ID"
+      }
+    },
+    "enableHttp2": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Enable HTTP/2"
+      }
+    },
+    "frontendPorts": {
+      "type": "array",
+      "defaultValue": [
+        {
+          "name": "port_80",
+          "port": 80
+        },
+        {
+          "name": "port_443",
+          "port": 443
+        }
+      ],
+      "metadata": {
+        "description": "Frontend ports configuration"
+      }
+    },
+    "backendAddressPools": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Backend address pools configuration"
+      }
+    },
+    "backendHttpSettingsCollection": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Backend HTTP settings configuration"
+      }
+    },
+    "httpListeners": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "HTTP listeners configuration"
+      }
+    },
+    "requestRoutingRules": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Request routing rules configuration"
+      }
+    },
+    "sslCertificates": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "SSL certificates configuration"
+      }
+    },
+    "trustedRootCertificates": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Trusted root certificates configuration"
+      }
+    },
+    "probes": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Health probes configuration"
+      }
+    },
+    "sslPolicy": {
+      "type": "object",
+      "defaultValue": {
+        "policyType": "Predefined",
+        "policyName": "AppGwSslPolicy20220101S"
+      },
+      "metadata": {
+        "description": "SSL policy configuration"
+      }
+    },
+    "userAssignedIdentityId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "User assigned identity resource ID for Key Vault access"
+      }
+    }
+  },
+  "variables": {
+    "frontendIPConfigurations": "[concat(if(not(empty(parameters('publicIpAddressId'))), createArray(createObject('name', 'appGwPublicFrontendIp', 'properties', createObject('publicIPAddress', createObject('id', parameters('publicIpAddressId'))))), createArray()), if(not(empty(parameters('privateIpAddress'))), createArray(createObject('name', 'appGwPrivateFrontendIp', 'properties', createObject('privateIPAddress', parameters('privateIpAddress'), 'privateIPAllocationMethod', 'Static', 'subnet', createObject('id', parameters('subnetId'))))), createArray()))]",
+    "gatewayIPConfigurations": [
+      {
+        "name": "appGwIpConfig",
+        "properties": {
+          "subnet": {
+            "id": "[parameters('subnetId')]"
+          }
+        }
+      }
+    ],
+    "sku": "[if(parameters('enableAutoscaling'), createObject('name', parameters('skuName'), 'tier', parameters('tier')), createObject('name', parameters('skuName'), 'tier', parameters('tier'), 'capacity', parameters('capacity')))]",
+    "autoscaleConfiguration": "[if(parameters('enableAutoscaling'), createObject('minCapacity', parameters('minCapacity'), 'maxCapacity', parameters('maxCapacity')), null())]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/applicationGateways",
+      "apiVersion": "2024-01-01",
+      "name": "[parameters('name')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "zones": "[if(not(empty(parameters('zones'))), parameters('zones'), null())]",
+      "identity": "[if(not(empty(parameters('userAssignedIdentityId'))), createObject('type', 'UserAssigned', 'userAssignedIdentities', createObject(format('{0}', parameters('userAssignedIdentityId')), createObject())), null())]",
+      "properties": {
+        "copy": [
+          {
+            "name": "frontendPorts",
+            "count": "[length(parameters('frontendPorts'))]",
+            "input": {
+              "name": "[parameters('frontendPorts')[copyIndex('frontendPorts')].name]",
+              "properties": {
+                "port": "[parameters('frontendPorts')[copyIndex('frontendPorts')].port]"
+              }
+            }
+          }
+        ],
+        "sku": "[variables('sku')]",
+        "autoscaleConfiguration": "[variables('autoscaleConfiguration')]",
+        "gatewayIPConfigurations": "[variables('gatewayIPConfigurations')]",
+        "frontendIPConfigurations": "[variables('frontendIPConfigurations')]",
+        "backendAddressPools": "[parameters('backendAddressPools')]",
+        "backendHttpSettingsCollection": "[parameters('backendHttpSettingsCollection')]",
+        "httpListeners": "[parameters('httpListeners')]",
+        "requestRoutingRules": "[parameters('requestRoutingRules')]",
+        "sslCertificates": "[parameters('sslCertificates')]",
+        "trustedRootCertificates": "[parameters('trustedRootCertificates')]",
+        "probes": "[parameters('probes')]",
+        "sslPolicy": "[parameters('sslPolicy')]",
+        "enableHttp2": "[parameters('enableHttp2')]",
+        "firewallPolicy": "[if(not(empty(parameters('firewallPolicyId'))), createObject('id', parameters('firewallPolicyId')), null())]"
+      }
+    }
+  ],
+  "outputs": {
+    "resourceId": {
+      "type": "string",
+      "metadata": {
+        "description": "The resource ID of the application gateway"
+      },
+      "value": "[resourceId('Microsoft.Network/applicationGateways', parameters('name'))]"
+    },
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the application gateway"
+      },
+      "value": "[parameters('name')]"
+    }
+  }
+}

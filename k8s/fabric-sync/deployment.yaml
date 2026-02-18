@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fabric-sync
+  labels:
+    app: fabric-sync
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fabric-sync
+  template:
+    metadata:
+      labels:
+        app: fabric-sync
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: fabric-sync-sa
+      containers:
+        - name: fabric-sync
+          image: ${ACR_NAME}.azurecr.io/fabric-sync:latest
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10

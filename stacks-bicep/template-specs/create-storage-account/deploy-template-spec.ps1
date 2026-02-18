@@ -1,0 +1,2 @@
+set-azcontext -subscription "Management"
+New-AzTemplateSpec -Name DeployStorageAccount -Version 25.06 -ResourceGroupName TemplateSpecs -Location westus2 -TemplateFile ~\git\bicep-infra\template-specs\create-storage-account\mainTemplate.bicep -DisplayName "Deploy Storage Account" -Description "Deploy a storage account" -Force

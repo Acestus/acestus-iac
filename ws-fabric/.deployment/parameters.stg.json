@@ -1,0 +1,29 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/deploymentRules/2.0.0/schema.json",
+  "version": "2.0",
+  "description": "Staging environment parameters - uses same storage account as dev, different container",
+  "environment": "Staging",
+  "rules": [
+    {
+      "displayName": "pl_ing_blob_api_brz",
+      "itemType": "DataPipeline",
+      "overrides": {
+        "source.container": "container-staging",
+        "trigger.blobPathBeginsWith": "/container-staging/"
+      }
+    }
+  ],
+  "parameters": {
+    "subscription_id": "<your-subscription-id>",
+    "resource_group": "<your-resource-group>",
+    "storage_account": "<your-storage-account>",
+    "container_name": "container-staging",
+    "managed_identity": "<your-managed-identity>"
+  },
+  "notebookParameters": {
+    "environment": "stg",
+    "source_container": "container-staging",
+    "storage_account": "<your-storage-account>",
+    "timezone": "<your-timezone>"
+  }
+}

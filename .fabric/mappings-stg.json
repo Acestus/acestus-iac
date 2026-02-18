@@ -1,0 +1,9 @@
+{
+    "WORKSPACE_ID": "<your-stg-workspace-id>",
+    "LH_API_BRZ": "<bronze-lakehouse-logical-id>",
+    "LH_API_SLV": "<silver-lakehouse-logical-id>",
+    "LH_API_GLD": "<gold-lakehouse-logical-id>",
+    "NB_TFM_API_BRZ_SLV": "<bronze-to-silver-notebook-logical-id>",
+    "NB_TFM_API_SLV_GLD": "<silver-to-gold-notebook-logical-id>",
+    "API_STORAGE_RESOURCE_ID": "/subscriptions/<your-subscription-id>/resourceGroups/<your-resource-group>/providers/Microsoft.Storage/storageAccounts/<your-storage-account>"
+}

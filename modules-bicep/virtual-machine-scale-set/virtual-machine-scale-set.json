@@ -1,0 +1,462 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.40.2.10011",
+      "templateHash": "16979587209638576389"
+    },
+    "name": "Acestus Virtual Machine Scale Set",
+    "description": "VMSS module with Acestus security standards",
+    "version": "1.0.0"
+  },
+  "parameters": {
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the virtual machine scale set"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for the VMSS"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags to apply to the resource"
+      }
+    },
+    "skuName": {
+      "type": "string",
+      "defaultValue": "Standard_D2s_v5",
+      "metadata": {
+        "description": "SKU name (VM size)"
+      }
+    },
+    "capacity": {
+      "type": "int",
+      "defaultValue": 2,
+      "minValue": 0,
+      "maxValue": 1000,
+      "metadata": {
+        "description": "Initial instance count"
+      }
+    },
+    "zones": {
+      "type": "array",
+      "defaultValue": [
+        "1",
+        "2",
+        "3"
+      ],
+      "metadata": {
+        "description": "Availability zones"
+      }
+    },
+    "upgradeMode": {
+      "type": "string",
+      "defaultValue": "Rolling",
+      "allowedValues": [
+        "Automatic",
+        "Manual",
+        "Rolling"
+      ],
+      "metadata": {
+        "description": "Upgrade policy mode"
+      }
+    },
+    "enableAutomaticOSUpgrade": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Enable automatic OS upgrades"
+      }
+    },
+    "osDiskType": {
+      "type": "string",
+      "defaultValue": "Premium_ZRS",
+      "allowedValues": [
+        "Premium_LRS",
+        "Premium_ZRS",
+        "Standard_LRS",
+        "StandardSSD_LRS",
+        "StandardSSD_ZRS"
+      ],
+      "metadata": {
+        "description": "OS disk type"
+      }
+    },
+    "osDiskSizeGB": {
+      "type": "int",
+      "defaultValue": 128,
+      "metadata": {
+        "description": "OS disk size in GB"
+      }
+    },
+    "osDiskCaching": {
+      "type": "string",
+      "defaultValue": "ReadWrite",
+      "allowedValues": [
+        "None",
+        "ReadOnly",
+        "ReadWrite"
+      ],
+      "metadata": {
+        "description": "OS disk caching"
+      }
+    },
+    "imagePublisher": {
+      "type": "string",
+      "defaultValue": "Canonical",
+      "metadata": {
+        "description": "Image reference publisher"
+      }
+    },
+    "imageOffer": {
+      "type": "string",
+      "defaultValue": "0001-com-ubuntu-server-jammy",
+      "metadata": {
+        "description": "Image reference offer"
+      }
+    },
+    "imageSku": {
+      "type": "string",
+      "defaultValue": "22_04-lts-gen2",
+      "metadata": {
+        "description": "Image reference SKU"
+      }
+    },
+    "imageVersion": {
+      "type": "string",
+      "defaultValue": "latest",
+      "metadata": {
+        "description": "Image reference version"
+      }
+    },
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Admin username"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Admin password (for Windows or if SSH not used)"
+      }
+    },
+    "sshPublicKey": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "SSH public key for Linux VMs"
+      }
+    },
+    "subnetId": {
+      "type": "string",
+      "metadata": {
+        "description": "Subnet resource ID"
+      }
+    },
+    "enablePublicIP": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Enable public IP per instance"
+      }
+    },
+    "loadBalancerBackendAddressPoolIds": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Load balancer backend address pool IDs"
+      }
+    },
+    "applicationGatewayBackendAddressPoolIds": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Application gateway backend address pool IDs"
+      }
+    },
+    "applicationSecurityGroupIds": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Application security group IDs"
+      }
+    },
+    "userAssignedIdentityIds": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "User assigned identity resource IDs"
+      }
+    },
+    "enableSystemAssignedIdentity": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Enable system assigned identity"
+      }
+    },
+    "enableBootDiagnostics": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Enable boot diagnostics"
+      }
+    },
+    "bootDiagnosticsStorageUri": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Boot diagnostics storage account URI"
+      }
+    },
+    "customData": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Custom data (cloud-init) - base64 encoded"
+      }
+    },
+    "dataDisks": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Data disks configuration"
+      }
+    },
+    "encryptionAtHost": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Enable encryption at host"
+      }
+    },
+    "osType": {
+      "type": "string",
+      "defaultValue": "Linux",
+      "allowedValues": [
+        "Linux",
+        "Windows"
+      ],
+      "metadata": {
+        "description": "OS type"
+      }
+    },
+    "rollingUpgradePolicy": {
+      "type": "object",
+      "defaultValue": {
+        "maxBatchInstancePercent": 20,
+        "maxUnhealthyInstancePercent": 20,
+        "maxUnhealthyUpgradedInstancePercent": 20,
+        "pauseTimeBetweenBatches": "PT0S"
+      },
+      "metadata": {
+        "description": "Rolling upgrade policy"
+      }
+    },
+    "scaleInPolicyRules": {
+      "type": "string",
+      "defaultValue": "Default",
+      "allowedValues": [
+        "Default",
+        "NewestVM",
+        "OldestVM"
+      ],
+      "metadata": {
+        "description": "Scale-in policy rules"
+      }
+    },
+    "overprovision": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Overprovision VMs"
+      }
+    },
+    "singlePlacementGroup": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Enable single placement group"
+      }
+    },
+    "platformFaultDomainCount": {
+      "type": "int",
+      "defaultValue": 1,
+      "metadata": {
+        "description": "Platform fault domain count"
+      }
+    }
+  },
+  "variables": {
+    "copy": [
+      {
+        "name": "lbPools",
+        "count": "[length(parameters('loadBalancerBackendAddressPoolIds'))]",
+        "input": {
+          "id": "[parameters('loadBalancerBackendAddressPoolIds')[copyIndex('lbPools')]]"
+        }
+      },
+      {
+        "name": "appGwPools",
+        "count": "[length(parameters('applicationGatewayBackendAddressPoolIds'))]",
+        "input": {
+          "id": "[parameters('applicationGatewayBackendAddressPoolIds')[copyIndex('appGwPools')]]"
+        }
+      },
+      {
+        "name": "asgList",
+        "count": "[length(parameters('applicationSecurityGroupIds'))]",
+        "input": {
+          "id": "[parameters('applicationSecurityGroupIds')[copyIndex('asgList')]]"
+        }
+      }
+    ],
+    "identityType": "[if(parameters('enableSystemAssignedIdentity'), if(not(empty(parameters('userAssignedIdentityIds'))), 'SystemAssigned, UserAssigned', 'SystemAssigned'), if(not(empty(parameters('userAssignedIdentityIds'))), 'UserAssigned', 'None'))]",
+    "userAssignedIdentities": "[if(not(empty(parameters('userAssignedIdentityIds'))), reduce(parameters('userAssignedIdentityIds'), createObject(), lambda('cur', 'next', union(lambdaVariables('cur'), createObject(format('{0}', lambdaVariables('next')), createObject())))), null())]",
+    "ipConfigurations": [
+      {
+        "name": "ipconfig1",
+        "properties": {
+          "primary": true,
+          "subnet": {
+            "id": "[parameters('subnetId')]"
+          },
+          "publicIPAddressConfiguration": "[if(parameters('enablePublicIP'), createObject('name', 'pip', 'properties', createObject('idleTimeoutInMinutes', 15)), null())]",
+          "loadBalancerBackendAddressPools": "[variables('lbPools')]",
+          "applicationGatewayBackendAddressPools": "[variables('appGwPools')]",
+          "applicationSecurityGroups": "[variables('asgList')]"
+        }
+      }
+    ],
+    "linuxConfiguration": "[if(equals(parameters('osType'), 'Linux'), createObject('disablePasswordAuthentication', not(empty(parameters('sshPublicKey'))), 'ssh', if(not(empty(parameters('sshPublicKey'))), createObject('publicKeys', createArray(createObject('path', format('/home/{0}/.ssh/authorized_keys', parameters('adminUsername')), 'keyData', parameters('sshPublicKey')))), null())), null())]",
+    "windowsConfiguration": "[if(equals(parameters('osType'), 'Windows'), createObject('enableAutomaticUpdates', true(), 'provisionVMAgent', true(), 'patchSettings', createObject('patchMode', 'AutomaticByPlatform', 'automaticByPlatformSettings', createObject('rebootSetting', 'IfRequired'))), null())]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Compute/virtualMachineScaleSets",
+      "apiVersion": "2024-07-01",
+      "name": "[parameters('name')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "sku": {
+        "name": "[parameters('skuName')]",
+        "tier": "Standard",
+        "capacity": "[parameters('capacity')]"
+      },
+      "zones": "[if(not(empty(parameters('zones'))), parameters('zones'), null())]",
+      "identity": "[if(not(equals(variables('identityType'), 'None')), createObject('type', variables('identityType'), 'userAssignedIdentities', variables('userAssignedIdentities')), null())]",
+      "properties": {
+        "overprovision": "[parameters('overprovision')]",
+        "singlePlacementGroup": "[parameters('singlePlacementGroup')]",
+        "platformFaultDomainCount": "[parameters('platformFaultDomainCount')]",
+        "upgradePolicy": {
+          "mode": "[parameters('upgradeMode')]",
+          "automaticOSUpgradePolicy": "[if(not(equals(parameters('upgradeMode'), 'Manual')), createObject('enableAutomaticOSUpgrade', parameters('enableAutomaticOSUpgrade'), 'disableAutomaticRollback', false()), null())]",
+          "rollingUpgradePolicy": "[if(equals(parameters('upgradeMode'), 'Rolling'), parameters('rollingUpgradePolicy'), null())]"
+        },
+        "scaleInPolicy": {
+          "rules": [
+            "[parameters('scaleInPolicyRules')]"
+          ]
+        },
+        "virtualMachineProfile": {
+          "osProfile": {
+            "computerNamePrefix": "[take(parameters('name'), 9)]",
+            "adminUsername": "[parameters('adminUsername')]",
+            "adminPassword": "[if(not(empty(parameters('adminPassword'))), parameters('adminPassword'), null())]",
+            "customData": "[if(not(empty(parameters('customData'))), parameters('customData'), null())]",
+            "linuxConfiguration": "[variables('linuxConfiguration')]",
+            "windowsConfiguration": "[variables('windowsConfiguration')]"
+          },
+          "storageProfile": {
+            "copy": [
+              {
+                "name": "dataDisks",
+                "count": "[length(parameters('dataDisks'))]",
+                "input": {
+                  "lun": "[copyIndex('dataDisks')]",
+                  "createOption": "Empty",
+                  "diskSizeGB": "[parameters('dataDisks')[copyIndex('dataDisks')].sizeGB]",
+                  "caching": "[coalesce(tryGet(parameters('dataDisks')[copyIndex('dataDisks')], 'caching'), 'ReadOnly')]",
+                  "managedDisk": {
+                    "storageAccountType": "[coalesce(tryGet(parameters('dataDisks')[copyIndex('dataDisks')], 'storageAccountType'), 'Premium_ZRS')]"
+                  }
+                }
+              }
+            ],
+            "imageReference": {
+              "publisher": "[parameters('imagePublisher')]",
+              "offer": "[parameters('imageOffer')]",
+              "sku": "[parameters('imageSku')]",
+              "version": "[parameters('imageVersion')]"
+            },
+            "osDisk": {
+              "createOption": "FromImage",
+              "caching": "[parameters('osDiskCaching')]",
+              "diskSizeGB": "[parameters('osDiskSizeGB')]",
+              "managedDisk": {
+                "storageAccountType": "[parameters('osDiskType')]"
+              }
+            }
+          },
+          "networkProfile": {
+            "networkInterfaceConfigurations": [
+              {
+                "name": "[format('{0}-nic', parameters('name'))]",
+                "properties": {
+                  "primary": true,
+                  "enableAcceleratedNetworking": true,
+                  "ipConfigurations": "[variables('ipConfigurations')]"
+                }
+              }
+            ]
+          },
+          "diagnosticsProfile": {
+            "bootDiagnostics": {
+              "enabled": "[parameters('enableBootDiagnostics')]",
+              "storageUri": "[if(not(empty(parameters('bootDiagnosticsStorageUri'))), parameters('bootDiagnosticsStorageUri'), null())]"
+            }
+          },
+          "securityProfile": {
+            "encryptionAtHost": "[parameters('encryptionAtHost')]"
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "resourceId": {
+      "type": "string",
+      "metadata": {
+        "description": "The resource ID of the VMSS"
+      },
+      "value": "[resourceId('Microsoft.Compute/virtualMachineScaleSets', parameters('name'))]"
+    },
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the VMSS"
+      },
+      "value": "[parameters('name')]"
+    },
+    "systemAssignedMIPrincipalId": {
+      "type": "string",
+      "metadata": {
+        "description": "The principal ID of the system assigned identity"
+      },
+      "value": "[coalesce(tryGet(reference(resourceId('Microsoft.Compute/virtualMachineScaleSets', parameters('name')), '2024-07-01', 'full').identity, 'principalId'), '')]"
+    }
+  }
+}

@@ -1,0 +1,175 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.40.2.10011",
+      "templateHash": "16718512936904024364"
+    },
+    "name": "Acestus Application Gateway WAF Policy",
+    "description": "WAF Policy module with Acestus security defaults",
+    "version": "1.0.0"
+  },
+  "parameters": {
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the WAF policy"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for the WAF policy"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags to apply to the resource"
+      }
+    },
+    "mode": {
+      "type": "string",
+      "defaultValue": "Prevention",
+      "allowedValues": [
+        "Detection",
+        "Prevention"
+      ],
+      "metadata": {
+        "description": "WAF mode"
+      }
+    },
+    "state": {
+      "type": "string",
+      "defaultValue": "Enabled",
+      "allowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "metadata": {
+        "description": "WAF state"
+      }
+    },
+    "requestBodyCheck": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Enable request body check"
+      }
+    },
+    "requestBodySizeLimitInKb": {
+      "type": "int",
+      "defaultValue": 128,
+      "minValue": 8,
+      "maxValue": 128,
+      "metadata": {
+        "description": "Request body size limit in KB"
+      }
+    },
+    "fileUploadLimitInMb": {
+      "type": "int",
+      "defaultValue": 100,
+      "minValue": 1,
+      "maxValue": 750,
+      "metadata": {
+        "description": "File upload limit in MB"
+      }
+    },
+    "maxRequestBodySizeInKb": {
+      "type": "int",
+      "defaultValue": 128,
+      "minValue": 8,
+      "maxValue": 128,
+      "metadata": {
+        "description": "Max request body size in KB for inspection"
+      }
+    },
+    "ruleSetType": {
+      "type": "string",
+      "defaultValue": "OWASP",
+      "allowedValues": [
+        "OWASP",
+        "Microsoft_DefaultRuleSet",
+        "Microsoft_BotManagerRuleSet"
+      ],
+      "metadata": {
+        "description": "Rule set type"
+      }
+    },
+    "ruleSetVersion": {
+      "type": "string",
+      "defaultValue": "3.2",
+      "metadata": {
+        "description": "Rule set version"
+      }
+    },
+    "managedRuleSets": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Managed rule sets configuration"
+      }
+    },
+    "customRules": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Custom rules configuration"
+      }
+    },
+    "exclusions": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Exclusions configuration"
+      }
+    }
+  },
+  "variables": {
+    "defaultManagedRuleSets": "[if(empty(parameters('managedRuleSets')), createArray(createObject('ruleSetType', parameters('ruleSetType'), 'ruleSetVersion', parameters('ruleSetVersion'))), parameters('managedRuleSets'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies",
+      "apiVersion": "2024-01-01",
+      "name": "[parameters('name')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "policySettings": {
+          "mode": "[parameters('mode')]",
+          "state": "[parameters('state')]",
+          "requestBodyCheck": "[parameters('requestBodyCheck')]",
+          "requestBodySizeLimitInKb": "[parameters('requestBodySizeLimitInKb')]",
+          "fileUploadLimitInMb": "[parameters('fileUploadLimitInMb')]",
+          "maxRequestBodySizeInKb": "[parameters('maxRequestBodySizeInKb')]"
+        },
+        "managedRules": {
+          "managedRuleSets": "[variables('defaultManagedRuleSets')]",
+          "exclusions": "[parameters('exclusions')]"
+        },
+        "customRules": "[parameters('customRules')]"
+      }
+    }
+  ],
+  "outputs": {
+    "resourceId": {
+      "type": "string",
+      "metadata": {
+        "description": "The resource ID of the WAF policy"
+      },
+      "value": "[resourceId('Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies', parameters('name'))]"
+    },
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the WAF policy"
+      },
+      "value": "[parameters('name')]"
+    }
+  }
+}

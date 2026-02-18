@@ -1,0 +1,166 @@
+name: Reusable push to prd (PowerShell)
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        default: prd
+      resource_group_name:
+        type: string
+        required: true
+      stack_name:
+        type: string
+        required: true
+      template_file:
+        type: string
+        default: infrastructure/main.bicep
+      params_file:
+        type: string
+        default: infrastructure/main.prd.bicepparam
+      infra_path_prefix:
+        type: string
+        default: infrastructure/
+      force_infra:
+        type: boolean
+        default: false
+      functions_json:
+        type: string
+        default: '[]'
+      azure_client_id:
+        type: string
+        required: true
+      azure_tenant_id:
+        type: string
+        required: true
+      azure_subscription_id:
+        type: string
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    environment: ${{ inputs.environment }}
+
+    env:
+      RESOURCE_GROUP_NAME: ${{ inputs.resource_group_name }}
+      TEMPLATE_FILE: ${{ inputs.template_file }}
+      PARAMS_FILE: ${{ inputs.params_file }}
+      INFRA_PATH_PREFIX: ${{ inputs.infra_path_prefix }}
+      STACK_NAME: ${{ inputs.stack_name }}
+      FUNCTIONS_JSON: ${{ inputs.functions_json }}
+      FORCE_INFRA: ${{ inputs.force_infra }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Login with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ inputs.azure_client_id }}
+          tenant-id: ${{ inputs.azure_tenant_id }}
+          subscription-id: ${{ inputs.azure_subscription_id }}
+          auth-type: SERVICE_PRINCIPAL
+          audience: api://AzureADTokenExchange
+
+      - name: Check for infrastructure changes
+        id: infra_changes
+        run: |
+          if [ "${FORCE_INFRA}" = "true" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          elif git diff --name-only HEAD~1 HEAD | grep -q "^${INFRA_PATH_PREFIX}"; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy Bicep template
+        if: steps.infra_changes.outputs.changed == 'true'
+        run: |
+          az stack group create \
+            --name "$STACK_NAME" \
+            --resource-group "$RESOURCE_GROUP_NAME" \
+            --template-file "$TEMPLATE_FILE" \
+            --parameters "$PARAMS_FILE" \
+            --action-on-unmanage deleteResources \
+            --deny-settings-mode none \
+            --yes
+
+      - name: Cache Azure Functions Core Tools
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-func-tools-4
+
+      - name: Setup Azure Functions Core Tools
+        run: |
+          npm install -g azure-functions-core-tools@4 --unsafe-perm true
+
+      - name: Deploy Azure Function Apps (PowerShell)
+        if: ${{ inputs.functions_json != '[]' }}
+        shell: pwsh
+        run: |
+          $functions = $env:FUNCTIONS_JSON | ConvertFrom-Json
+          $jobs = @()
+          
+          foreach ($fn in $functions) {
+            $path = $fn.path
+            $name = $fn.name
+            $runtime = if ($fn.runtime) { $fn.runtime } else { 'powershell' }
+            
+            $jobs += Start-Job -ScriptBlock {
+              param($p, $n, $r)
+              Set-Location $p
+              $output = & func azure functionapp publish $n "--$r" 2>&1 | Out-String
+              Write-Output $output
+              
+              # Check if deployment succeeded (even if sync triggers failed)
+              if ($output -match "Deployment completed successfully") {
+                if ($output -match "Error calling sync triggers") {
+                  Write-Warning "Sync triggers failed, but deployment completed successfully"
+                }
+                return @{ Success = $true; Name = $n }
+              } else {
+                Write-Error "Deployment failed for $n"
+                return @{ Success = $false; Name = $n }
+              }
+            } -ArgumentList $path, $name, $runtime
+          }
+          
+          $results = $jobs | Wait-Job | Receive-Job
+          $jobs | Remove-Job
+          
+          $failed = $results | Where-Object { $_.Success -eq $false }
+          
+          if ($failed) {
+            Write-Error "One or more function deployments failed"
+            exit 1
+          }
+          
+          Write-Host "✅ All function deployments completed successfully"
+
+      - name: Deployment Summary
+        if: always()
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Resource Group:** $RESOURCE_GROUP_NAME" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.infra_changes.outputs.changed }}" == "true" ]; then
+            echo "✅ Infrastructure deployed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⏭️ Infrastructure skipped (no changes)" >> $GITHUB_STEP_SUMMARY
+          fi

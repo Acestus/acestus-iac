@@ -1,0 +1,66 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/dataAgent/definition/dataSource/1.0.0/schema.json",
+  "artifactId": "{{lh_api_GLD}}",
+  "workspaceId": "{{WORKSPACE_ID}}",
+  "dataSourceInstructions": null,
+  "displayName": "lh_api_gld",
+  "type": "lakehouse_tables",
+  "userDescription": null,
+  "metadata": {},
+  "elements": [
+    {
+      "id": "a3671ee7-7050-46fb-af4c-bb057b7c15ae",
+      "is_selected": false,
+      "display_name": "dbo",
+      "type": "lakehouse_tables.schema",
+      "description": null,
+      "children": [
+        {
+          "id": "d4afe852-2a93-4766-9c65-d02b29fe0169",
+          "is_selected": true,
+          "display_name": "time_logs",
+          "type": "lakehouse_tables.table",
+          "description": null,
+          "children": [
+            {
+              "id": "2c2eec83-8bfe-42b6-b7d9-05b0c45f2619",
+              "is_selected": true,
+              "display_name": "message",
+              "type": "lakehouse_tables.column",
+              "data_type": "varchar",
+              "description": null,
+              "children": []
+            },
+            {
+              "id": "54eb730c-2976-4ded-98c9-9f61b89e2db4",
+              "is_selected": true,
+              "display_name": "timestamp",
+              "type": "lakehouse_tables.column",
+              "data_type": "datetime2",
+              "description": null,
+              "children": []
+            },
+            {
+              "id": "35453451-c3f3-4fb0-a261-932cb67f0549",
+              "is_selected": true,
+              "display_name": "timestamp_local",
+              "type": "lakehouse_tables.column",
+              "data_type": "datetime2",
+              "description": null,
+              "children": []
+            },
+            {
+              "id": "ab8ef00a-58fa-45db-86bc-d72e569c5fcc",
+              "is_selected": true,
+              "display_name": "utcTimestamp",
+              "type": "lakehouse_tables.column",
+              "data_type": "datetime2",
+              "description": null,
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,172 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.40.2.10011",
+      "templateHash": "1545532411914754022"
+    },
+    "name": "Acestus Public IP Address",
+    "description": "Public IP address module with Acestus security defaults and naming conventions",
+    "version": "1.0.0"
+  },
+  "parameters": {
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the public IP address"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for the public IP address"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags to apply to the resource"
+      }
+    },
+    "skuName": {
+      "type": "string",
+      "defaultValue": "Standard",
+      "allowedValues": [
+        "Basic",
+        "Standard"
+      ],
+      "metadata": {
+        "description": "SKU name for the public IP address"
+      }
+    },
+    "skuTier": {
+      "type": "string",
+      "defaultValue": "Regional",
+      "allowedValues": [
+        "Regional",
+        "Global"
+      ],
+      "metadata": {
+        "description": "SKU tier for the public IP address"
+      }
+    },
+    "allocationMethod": {
+      "type": "string",
+      "defaultValue": "Static",
+      "allowedValues": [
+        "Static",
+        "Dynamic"
+      ],
+      "metadata": {
+        "description": "Allocation method for the public IP address"
+      }
+    },
+    "publicIPAddressVersion": {
+      "type": "string",
+      "defaultValue": "IPv4",
+      "allowedValues": [
+        "IPv4",
+        "IPv6"
+      ],
+      "metadata": {
+        "description": "IP address version"
+      }
+    },
+    "domainNameLabel": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "DNS domain name label for the public IP"
+      }
+    },
+    "idleTimeoutInMinutes": {
+      "type": "int",
+      "defaultValue": 4,
+      "minValue": 4,
+      "maxValue": 30,
+      "metadata": {
+        "description": "Idle timeout in minutes"
+      }
+    },
+    "zones": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Availability zones for the public IP"
+      }
+    },
+    "ddosProtectionMode": {
+      "type": "string",
+      "defaultValue": "VirtualNetworkInherited",
+      "metadata": {
+        "description": "Enable DDoS protection"
+      }
+    },
+    "ddosProtectionPlanId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "DDoS protection plan resource ID (required if ddosProtectionMode is Enabled)"
+      }
+    }
+  },
+  "variables": {
+    "dnsSettings": "[if(not(empty(parameters('domainNameLabel'))), createObject('domainNameLabel', parameters('domainNameLabel')), null())]",
+    "ddosSettings": "[if(and(equals(parameters('ddosProtectionMode'), 'Enabled'), not(empty(parameters('ddosProtectionPlanId')))), createObject('protectionMode', parameters('ddosProtectionMode'), 'ddosProtectionPlan', createObject('id', parameters('ddosProtectionPlanId'))), createObject('protectionMode', parameters('ddosProtectionMode')))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2024-01-01",
+      "name": "[parameters('name')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "sku": {
+        "name": "[parameters('skuName')]",
+        "tier": "[parameters('skuTier')]"
+      },
+      "zones": "[if(not(empty(parameters('zones'))), parameters('zones'), null())]",
+      "properties": {
+        "publicIPAllocationMethod": "[parameters('allocationMethod')]",
+        "publicIPAddressVersion": "[parameters('publicIPAddressVersion')]",
+        "idleTimeoutInMinutes": "[parameters('idleTimeoutInMinutes')]",
+        "dnsSettings": "[variables('dnsSettings')]",
+        "ddosSettings": "[variables('ddosSettings')]"
+      }
+    }
+  ],
+  "outputs": {
+    "resourceId": {
+      "type": "string",
+      "metadata": {
+        "description": "The resource ID of the public IP address"
+      },
+      "value": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('name'))]"
+    },
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the public IP address"
+      },
+      "value": "[parameters('name')]"
+    },
+    "ipAddress": {
+      "type": "string",
+      "metadata": {
+        "description": "The IP address"
+      },
+      "value": "[coalesce(reference(resourceId('Microsoft.Network/publicIPAddresses', parameters('name')), '2024-01-01').ipAddress, '')]"
+    },
+    "fqdn": {
+      "type": "string",
+      "metadata": {
+        "description": "The FQDN of the public IP address"
+      },
+      "value": "[coalesce(tryGet(reference(resourceId('Microsoft.Network/publicIPAddresses', parameters('name')), '2024-01-01').dnsSettings, 'fqdn'), '')]"
+    }
+  }
+}

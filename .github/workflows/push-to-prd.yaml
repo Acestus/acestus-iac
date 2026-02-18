@@ -1,0 +1,60 @@
+name: Deploy to prd
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "**/*.md"
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-to-prd:
+    # Replace with your reusable workflow or inline the deployment steps
+    # uses: your-org/your-repo/.github/workflows/aks-deploy-dotnet.yaml@main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Example: Add your deployment steps here
+
+    # Example configuration (replace with your values):
+    # with:
+    #     environment: prd
+    #     azure_tenant_id: ${{ vars.AZURE_TENANT_ID }}
+    #     azure_client_id: ${{ vars.AZURE_CLIENT_ID_PRD }}
+    #     azure_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+    #     resource_group_name: rg-timelogger-prd-usw2-001
+    #     stack_name: stack-timelogger-prd-usw2-001
+    #     template_file: infrastructure/main.bicep
+    #     params_file: infrastructure/main.prd.bicepparam
+    #     acr_name: <your-acr-name>
+    #     aks_cluster_name: aks-timelogger-prd-usw2-001
+    #     k8s_namespace: default
+    #     storage_account_name: sttimeloggerprdusw2001
+    #     applications_json: |
+    #         [
+    #           {
+    #             "path": "api-traffic",
+    #             "name": "api-traffic",
+    #             "image": "api-traffic",
+    #             "dockerfile": "Dockerfile"
+    #           },
+    #           {
+    #             "path": "time-logger",
+    #             "name": "time-logger",
+    #             "image": "time-logger",
+    #             "dockerfile": "Dockerfile"
+    #           },
+    #           {
+    #             "path": "fabric-sync",
+    #             "name": "fabric-sync",
+    #             "image": "fabric-sync",
+    #             "dockerfile": "Dockerfile"
+    #           }
+    #         ]
