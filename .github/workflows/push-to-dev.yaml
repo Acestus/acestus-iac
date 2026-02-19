@@ -19,7 +19,7 @@ jobs:
       environment: dev
       force_infra: false
       azure_tenant_id: ${{ vars.AZURE_TENANT_ID }}
-      azure_client_id: ${{ vars.UMI_ACESTUS_DEV_SCUS_MGT }}
+      azure_client_id: ${{ vars.AZURE_CLIENT_ID }}
       azure_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       resource_group_name: rg-ess-dev-usw2-001
       stack_name: stack-ess-dev-usw2-001
