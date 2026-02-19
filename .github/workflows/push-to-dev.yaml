@@ -17,7 +17,7 @@ jobs:
     uses: ./.github/workflows/aks-deploy-dotnet.yaml
     with:
       environment: dev
-      force_infra: false
+      force_infra: true
       azure_tenant_id: ${{ vars.AZURE_TENANT_ID }}
       azure_client_id: ${{ vars.UMI_ACESTUS_DEV_SCUS_MGT }}
       azure_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
