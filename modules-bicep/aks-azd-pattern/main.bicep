@@ -147,7 +147,7 @@ module aksAzdPattern 'br/public:avm/ptn/azd/aks:0.2.0' = {
   name: 'stack-aks-${name}'
   params: {
     // Identity
-    name: 'umi-${name}'
+    name: name
     location: location
     tags: tags
 
