@@ -1,4 +1,13 @@
 # Time Logger - AKS .NET Template
+#
+## Recent Changes (February 2026)
+
+- Refactored tag logic: All tag logic (including mergedTags) is now defined in the `tags` parameter block in each environment's `.bicepparam` file. The `main.bicep` template now consumes tags directly from parameters.
+- Standardized tags: The `Project` and `CreatedBy` tag values are now consistent across all environments and parameter files.
+- Storage Account AVM compliance: The storage-account module now uses flat properties for soft delete configuration (e.g., `deleteRetentionPolicyEnabled`, `deleteRetentionPolicyDays`, etc.) in the `blobServices` block, following AVM and Bicep best practices.
+- Validation: All changes were validated using `az bicep build` to ensure no errors or warnings. The infrastructure code is clean and ready for deployment.
+
+See the [CHANGELOG.md](CHANGELOG.md) for a detailed list of updates.
 
 A production-ready Azure Kubernetes Service (AKS) template featuring containerized .NET 8 applications with automated blob storage logging.
 

@@ -1,4 +1,11 @@
 # Changelog
+#
+## [Unreleased] - 2026-02-18
+### Changed
+- Refactored all tag logic to reside in the `tags` parameter block of each environment's `.bicepparam` file. Removed `mergedTags` logic from `main.bicep`.
+- Standardized `Project` and `CreatedBy` tag values across all environments and parameter files.
+- Updated storage-account module to use flat soft delete properties (`deleteRetentionPolicyEnabled`, `deleteRetentionPolicyDays`, etc.) in the `blobServices` block for AVM compliance.
+- Validated all Bicep templates with `az bicep build` to ensure no errors or warnings remain.
 
 All notable changes to this project will be documented in this file.
 
