@@ -23,8 +23,8 @@ jobs:
       azure_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       resource_group_name: rg-ess-dev-usw2-001
       stack_name: stack-ess-dev-usw2-001
-      template_file: infrastructure/main.bicep
-      params_file: infrastructure/main.dev.bicepparam
+      template_file: stacks-bicep/rg-acestus-scus/main.bicep
+      params_file: stacks-bicep/rg-acestus-scus/environment/dev/main.dev.bicepparam
       acr_name: skoposacrregistry
       aks_cluster_name: aks-ess-dev-usw2-001
       k8s_namespace: default
