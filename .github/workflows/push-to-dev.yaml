@@ -19,8 +19,8 @@ jobs:
       environment: dev
       force_infra: false
       azure_tenant_id: ${{ vars.AZURE_TENANT_ID }}
-      azure_client_id: ${{ vars.UMI_SKPANA_DEV_USW2_001 }}
-      azure_subscription_id: ${{ vars.SBOX_710_ANALYTICS }}
+      azure_client_id: ${{ vars.UMI_ACESTUS_DEV_SCUS_MGT }}
+      azure_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       resource_group_name: rg-ess-dev-usw2-001
       stack_name: stack-ess-dev-usw2-001
       template_file: infrastructure/main.bicep
