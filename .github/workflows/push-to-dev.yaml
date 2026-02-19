@@ -13,31 +13,43 @@ permissions:
   contents: read
 
 jobs:
-  deploy-to-dev:
-    # Replace with your reusable workflow or inline the deployment steps
-    # uses: your-org/your-repo/.github/workflows/aks-deploy-dotnet.yaml@main
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # Example: Add your deployment steps here
-      # - Azure login with OIDC
-      # - Build and push container images
-      # - Deploy to AKS
-
-    # Example configuration (replace with your values):
-    # with:
-    #   environment: dev
-    #   azure_tenant_id: ${{ vars.AZURE_TENANT_ID }}
-    #   azure_client_id: ${{ vars.UMI_ACESTUS_DEV_EUS1_001 }}
-    #   azure_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-    #   resource_group_name: rg-timelogger-dev-ncus-001
-    #   stack_name: stack-timelogger-dev-ncus-001
-    #   template_file: infrastructure/main.bicep
-    #   params_file: infrastructure/main.dev.bicepparam
-    #   acr_name: <your-acr-name>
-    #   aks_cluster_name: aks-timelogger-dev-ncus-001
+  push-to-dev:
+    uses: ./.github/workflows/aks-deploy-dotnet.yaml
+    with:
+      environment: dev
+      force_infra: false
+      azure_tenant_id: ${{ vars.AZURE_TENANT_ID }}
+      azure_client_id: ${{ vars.UMI_SKPANA_DEV_USW2_001 }}
+      azure_subscription_id: ${{ vars.SBOX_710_ANALYTICS }}
+      resource_group_name: rg-ess-dev-usw2-001
+      stack_name: stack-ess-dev-usw2-001
+      template_file: infrastructure/main.bicep
+      params_file: infrastructure/main.dev.bicepparam
+      acr_name: skoposacrregistry
+      aks_cluster_name: aks-ess-dev-usw2-001
+      k8s_namespace: default
+      storage_account_name: stessdevusw2001
+      applications_json: |
+        [
+          {
+            "path": "ess-traffic",
+            "name": "ess-traffic",
+            "image": "ess-traffic",
+            "dockerfile": "Dockerfile"
+          },
+          {
+            "path": "time-logger",
+            "name": "time-logger",
+            "image": "time-logger",
+            "dockerfile": "Dockerfile"
+          },
+          {
+            "path": "fabric-sync",
+            "name": "fabric-sync",
+            "image": "fabric-sync",
+            "dockerfile": "Dockerfile"
+          }
+        ]
     #   k8s_namespace: default
     #   storage_account_name: sttimeloggerdevncus001
     #   applications_json: |
