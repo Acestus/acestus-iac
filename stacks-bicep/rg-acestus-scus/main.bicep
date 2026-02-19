@@ -12,17 +12,17 @@ targetScope = 'resourceGroup'
 // ============================================================================
 
 @description('Project name used in resource naming')
-param projectName string = 'timelogger'
+param projectName string
 
 @description('Environment: dev, stg, prd')
 @allowed(['dev', 'stg', 'prd'])
-param environment string = 'dev'
+param environment string
 
 @description('Azure region short code for naming (e.g., eus1, weu, aue)')
-param regionCode string = 'eus1'
+param regionCode string
 
 @description('Instance number for resource naming')
-param instanceNumber string = '001'
+param instanceNumber string
 
 @description('Azure region for resource deployment')
 param location string = resourceGroup().location

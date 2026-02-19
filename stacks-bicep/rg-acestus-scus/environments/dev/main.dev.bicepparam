@@ -2,9 +2,9 @@ using '../../main.bicep'
 
 param projectName = 'acestus'
 param environment = 'dev'
-param regionCode = 'eus1'
+param regionCode = 'scus'
 param instanceNumber = '001'
-param location = 'eastus'
+param location = 'southcentralus'
 
 param tags = {
   ManagedBy: 'https://github.com/acestus/acestus-iac'

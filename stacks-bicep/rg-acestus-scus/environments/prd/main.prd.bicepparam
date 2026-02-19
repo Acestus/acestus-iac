@@ -1,35 +1,35 @@
 using '../../main.bicep'
 
-param projectName = 'timelogger'
-param environment = 'stg'
-param regionCode = 'eus1'
+param projectName = 'acestus'
+param environment = 'prd'
+param regionCode = 'scus'
 param instanceNumber = '001'
-param location = 'eastus'
+param location = 'southcentralus'
 
 param tags = {
   CreatedBy: 'acestus'
   Project: 'Time Logger - AKS .NET Microservice'
   ManagedBy: 'https://github.com/your-org/acestus-iac'
-  CostCenter: 'Staging'
+  CostCenter: 'Production'
   Subscription: 'Acestus'
 }
 
-// AKS Configuration - Balanced for staging
+// AKS Configuration - Production ready
 param kubernetesVersion = '1.30'
 param aksSkuTier = 'Standard'
 param systemPoolSize = 'Standard'
-param agentPoolSize = '' // No additional agent pool for staging
+param agentPoolSize = 'Standard' // Additional agent pool for production workloads
 
-// AKS Security
+// AKS Security - Hardened for production
 param enableAzureRbac = true
 param disableLocalAccounts = true
 param enableKeyvaultSecretsProvider = true
 
 // ACR Configuration
-param acrSku = 'Standard'
+param acrSku = 'Premium'
 
 // Storage Configuration
-param storageSkuName = 'Standard_GRS'
+param storageSkuName = 'Standard_RAGRS'
 param enableBlobSoftDelete = true
 
 // Networking
