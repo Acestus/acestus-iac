@@ -117,7 +117,7 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.31.0' = {
     skuName: skuName
     kind: kind
     tags: tags
-    
+
     // Security Configuration
     allowSharedKeyAccess: allowSharedKeyAccess
     allowBlobPublicAccess: allowBlobPublicAccess
@@ -125,48 +125,41 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.31.0' = {
     supportsHttpsTrafficOnly: supportsHttpsTrafficOnly
     requireInfrastructureEncryption: requireInfrastructureEncryption
     defaultToOAuthAuthentication: !allowSharedKeyAccess
-    
+
     // Network Access Control
     publicNetworkAccess: empty(allowedIpRules) && empty(virtualNetworkRules) ? 'Disabled' : 'Enabled'
     networkAcls: {
       defaultAction: defaultNetworkAction
       bypass: 'AzureServices'
-      ipRules: [for rule in allowedIpRules: {
-        action: 'Allow'
-        value: rule
-      }]
-      virtualNetworkRules: [for rule in virtualNetworkRules: {
-        action: 'Allow'
-        id: rule
-      }]
+      ipRules: [
+        for rule in allowedIpRules: {
+          action: 'Allow'
+          value: rule
+        }
+      ]
+      virtualNetworkRules: [
+        for rule in virtualNetworkRules: {
+          action: 'Allow'
+          id: rule
+        }
+      ]
     }
-    
+
     // Customer Managed Key
     customerManagedKey: !empty(customerManagedKey) ? customerManagedKey : null
     managedIdentities: !empty(managedIdentities) ? managedIdentities : null
-    
+
     // Blob Services Configuration
     blobServices: {
-      deleteRetentionPolicy: {
-        enabled: enableBlobSoftDelete
-        allowPermanentDelete: false
-        days: enableBlobSoftDelete ? blobSoftDeleteRetentionDays : null
-      }
-      containerDeleteRetentionPolicy: {
-        enabled: enableContainerSoftDelete
-        allowPermanentDelete: false
-        days: enableContainerSoftDelete ? containerSoftDeleteRetentionDays : null
-      }
       isVersioningEnabled: enableBlobVersioning
       automaticSnapshotPolicyEnabled: false
-      lastAccessTimeTrackingPolicy: {
-        enable: true
-        name: 'AccessTimeTracking'
-        trackingGranularityInDays: 1
-      }
+      deleteRetentionPolicyEnabled: enableBlobSoftDelete
+      deleteRetentionPolicyDays: enableBlobSoftDelete ? blobSoftDeleteRetentionDays : null
+      containerDeleteRetentionPolicyEnabled: enableContainerSoftDelete
+      containerDeleteRetentionPolicyDays: enableContainerSoftDelete ? containerSoftDeleteRetentionDays : null
       containers: blobContainers
     }
-    
+
     // Additional Services
     queueServices: !empty(queueServices) ? queueServices : null
     tableServices: !empty(tableServices) ? tableServices : null

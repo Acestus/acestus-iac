@@ -2,7 +2,7 @@
 
 This guide helps you get started with managing custom Bicep modules in your Azure Container Registry (ACR).
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Test the Storage Account Module
 
@@ -49,7 +49,7 @@ cd modules-bicep\examples
 .\deploy-example.ps1          # Deploy for real
 ```
 
-## 📚 Available Scripts
+## Available Scripts
 
 | Script | Purpose | Example |
 |--------|---------|---------|
@@ -58,13 +58,13 @@ cd modules-bicep\examples
 | `Publish-AllModules.ps1` | Publish all modules at once | `.\Publish-AllModules.ps1 -Version "v1.0.0"` |
 | `List-ModuleVersions.ps1` | Show published versions | `.\List-ModuleVersions.ps1 -ModuleName "storage-account"` |
 
-## 🔄 Automated Publishing
+## Automated Publishing
 
 Modules are automatically published when you:
 1. Push changes to the `main` branch under `modules-bicep/`
 2. Manually trigger the "Publish Bicep Modules" workflow
 
-## 🏗️ Creating New Modules
+## Creating New Modules
 
 ### 1. Module Structure
 ```
@@ -100,7 +100,7 @@ module resource 'br/public:avm/res/resource-type:version' = {
 output outputName string = resource.outputs.property
 ```
 
-## 📋 Migration Checklist
+## Migration Checklist
 
 To migrate existing templates to use custom modules:
 
@@ -112,7 +112,7 @@ To migrate existing templates to use custom modules:
 - [ ] Verify deployments work correctly
 - [ ] Update documentation
 
-## 🔧 Benefits of Custom Modules
+## Benefits of Custom Modules
 
 ### Before (Direct AVM)
 ```bicep
@@ -176,7 +176,7 @@ module storageAccount 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/storage
 }
 ```
 
-## 🎯 Next Steps
+## Next Steps
 
 1. **Test the storage account module** with your existing parameters
 2. **Publish your first module** to ACR
@@ -184,7 +184,7 @@ module storageAccount 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/storage
 4. **Create modules for other common patterns** (Key Vault, Function Apps, etc.)
 5. **Set up automated testing** for your modules
 
-## 🔍 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -200,7 +200,7 @@ module storageAccount 'br:acracemgtcrprdwus3001.azurecr.io/bicep/modules/storage
 - Run `.\Test-Module.ps1 -ModuleName "your-module"` first
 - Check syntax with `az bicep build --file path/to/module.bicep`
 
-## 📖 Documentation
+## Documentation
 
 - [Storage Account Module](storage-account/README.md) - Detailed parameter reference
 - [Examples](examples/README.md) - Usage examples and migration guides

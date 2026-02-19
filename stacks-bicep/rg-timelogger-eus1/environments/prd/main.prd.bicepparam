@@ -5,10 +5,10 @@ param environment = 'prd'
 param regionCode = 'eus1'
 param instanceNumber = '001'
 param location = 'eastus'
-param createdBy = 'wweeks'
 
 param tags = {
-  Project: 'TimeLogger AKS Application'
+  CreatedBy: 'acestus'
+  Project: 'Time Logger - AKS .NET Microservice'
   ManagedBy: 'https://github.com/your-org/acestus-iac'
   CostCenter: 'Production'
 }
@@ -17,7 +17,7 @@ param tags = {
 param kubernetesVersion = '1.30'
 param aksSkuTier = 'Standard'
 param systemPoolSize = 'Standard'
-param agentPoolSize = 'Standard'  // Additional agent pool for production workloads
+param agentPoolSize = 'Standard' // Additional agent pool for production workloads
 
 // AKS Security - Hardened for production
 param enableAzureRbac = true
@@ -31,10 +31,10 @@ param acrSku = 'Premium'
 param storageSkuName = 'Standard_RAGRS'
 param enableBlobSoftDelete = true
 
-// Networking  
+// Networking
 param networkPlugin = 'azure'
 param networkPolicy = 'azure'
 
 // Principal for role assignments
-param principalId = '00000000-0000-0000-0000-000000000000'  // Replace with actual principal ID
+param principalId = '00000000-0000-0000-0000-000000000000' // Replace with actual principal ID
 param principalType = 'ServicePrincipal'

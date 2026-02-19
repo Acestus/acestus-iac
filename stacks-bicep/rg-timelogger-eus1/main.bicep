@@ -27,9 +27,6 @@ param instanceNumber string = '001'
 @description('Azure region for resource deployment')
 param location string = resourceGroup().location
 
-@description('Username who created the resources')
-param createdBy string = 'deployment-pipeline'
-
 @description('Additional tags to apply to resources')
 param tags object = {}
 
@@ -109,13 +106,7 @@ param principalType string = 'ServicePrincipal'
 
 var cafName = '${projectName}-${environment}-${regionCode}-${instanceNumber}'
 
-var mergedTags = union({
-  ManagedBy: 'https://github.com/your-org/acestus-iac'
-  CreatedBy: createdBy
-  Environment: environment == 'prd' ? 'Production' : environment == 'stg' ? 'Staging' : 'Development'
-  Project: 'Time Logger - AKS .NET Template'
-  CAFName: cafName
-}, tags)
+// Tags are now fully provided by the 'tags' parameter from bicepparam
 
 // Resource names (following CAF conventions)
 var aksClusterName = 'aks-${cafName}'
@@ -131,53 +122,53 @@ var storageAccountName = 'st${replace(projectName, '-', '')}${environment}${regi
 
 // Monitoring Pattern - Includes Log Analytics + Application Insights + Dashboard
 // Pattern: avm/ptn/azd/monitoring:0.2.1
-module monitoring '../../modules-bicep/avm/ptn/azd/monitoring/main.bicep' = {
+module monitoring '../../modules-bicep/avm-ptn-azd-monitoring/main.bicep' = {
   name: 'deploy-monitoring-${cafName}'
   params: {
     name: monitoringName
     location: location
-    tags: mergedTags
+    tags: tags
   }
 }
 
 // AKS AZD Pattern - Includes AKS cluster, ACR, Key Vault, and RBAC configuration
 // This is the primary pattern that deploys the complete AKS infrastructure
 // Pattern: avm/ptn/azd/aks:0.2.0
-module aksAzdPattern '../../modules-bicep/aks-azd-pattern/aks-azd-pattern.bicep' = {
+module aksAzdPattern '../../modules-bicep/aks-azd-pattern/main.bicep' = {
   name: 'deploy-${aksClusterName}'
   params: {
     // Identity
     name: aksClusterName
     location: location
-    tags: mergedTags
-    
+    tags: tags
+
     // Associated resources
     containerRegistryName: acrName
     keyVaultName: keyVaultName
     monitoringWorkspaceResourceId: monitoring.outputs.logAnalyticsWorkspaceResourceId
     principalId: principalId
     principalType: principalType
-    
+
     // Kubernetes configuration
     kubernetesVersion: kubernetesVersion
     skuTier: aksSkuTier
     systemPoolSize: systemPoolSize
     agentPoolSize: agentPoolSize
-    
+
     // Network configuration
     networkPlugin: networkPlugin
     networkPolicy: networkPolicy
     loadBalancerSku: 'standard'
-    
+
     // Security configuration
     enableRbacAuthorization: true
     enableAzureRbac: enableAzureRbac
     disableLocalAccounts: disableLocalAccounts
     enableKeyvaultSecretsProvider: enableKeyvaultSecretsProvider
-    
+
     // Container Registry configuration
     acrSku: acrSku
-    
+
     // Key Vault configuration
     enablePurgeProtection: environment == 'prd'
     enableVaultForDeployment: true
@@ -187,32 +178,32 @@ module aksAzdPattern '../../modules-bicep/aks-azd-pattern/aks-azd-pattern.bicep'
 
 // Storage Account for time-logger CronJob blob storage
 // Pattern: avm/res/storage/storage-account:0.31.0
-module storageAccount '../../modules-bicep/storage-account/storage-account.bicep' = {
+module storageAccount '../../modules-bicep/storage-account/main.bicep' = {
   name: 'deploy-${storageAccountName}'
   params: {
     name: storageAccountName
     location: location
-    tags: mergedTags
+    tags: tags
     skuName: storageSkuName
     kind: 'StorageV2'
-    
+
     // Security configuration
     allowBlobPublicAccess: false
     allowSharedKeyAccess: false
     minimumTlsVersion: 'TLS1_2'
     supportsHttpsTrafficOnly: true
-    
+
     // Soft delete configuration
     enableBlobSoftDelete: enableBlobSoftDelete
     blobSoftDeleteRetentionDays: 30
     enableContainerSoftDelete: true
     containerSoftDeleteRetentionDays: 30
     enableBlobVersioning: environment == 'prd'
-    
+
     // Network configuration - Allow access for now (can be locked down with private endpoints)
     defaultNetworkAction: 'Allow'
     allowedIpRules: []
-    
+
     // Blob containers for time-logger
     blobContainers: [
       {
