@@ -21,20 +21,20 @@ jobs:
       azure_tenant_id: ${{ vars.AZURE_TENANT_ID }}
       azure_client_id: ${{ vars.UMI_ACESTUS_DEV_SCUS_MGT }}
       azure_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-      resource_group_name: rg-ess-dev-usw2-001
-      stack_name: stack-ess-dev-usw2-001
+      resource_group_name: rg-acestus-dev-scus-001
+      stack_name: stack-acestus-dev-scus-001
       template_file: stacks-bicep/rg-acestus-scus/main.bicep
       params_file: stacks-bicep/rg-acestus-scus/environments/dev/main.dev.bicepparam
-      acr_name: skoposacrregistry
-      aks_cluster_name: aks-ess-dev-usw2-001
+      acr_name: acracestusdevscus001
+      aks_cluster_name: aks-acestus-dev-scus-001
       k8s_namespace: default
-      storage_account_name: stessdevusw2001
+      storage_account_name: stacestusdevscus001
       applications_json: |
         [
           {
-            "path": "ess-traffic",
-            "name": "ess-traffic",
-            "image": "ess-traffic",
+            "path": "api-traffic",
+            "name": "api-traffic",
+            "image": "api-traffic",
             "dockerfile": "Dockerfile"
           },
           {
