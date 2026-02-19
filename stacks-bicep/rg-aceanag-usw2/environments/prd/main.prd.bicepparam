@@ -6,8 +6,8 @@ param CAFLocation = 'eus2'
 param instanceNumber = '001'
 
 param tags = {
-  ManagedBy: 'https://github.com/<your-org>/<your-repo>'
-  CreatedBy: '<your-username>'
-  Subscription: 'Sbox-710-Analytics'
+  ManagedBy: 'https://github.com/acestus/acestus-iac'
+  CreatedBy: 'acestus'
+  Subscription: 'Acestus'
   Project: 'Acestus Analytics Platform'
 }

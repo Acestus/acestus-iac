@@ -1,6 +1,6 @@
 # Create a Public IP Policy Exemption
 $TemplateSpecId = "/subscriptions/<subscription-id>/resourceGroups/TemplateSpecs/providers/Microsoft.Resources/templateSpecs/PublicIpPolicyExemption/versions/24.12"
-$subscription = "Sbox-510-Infrastructure"
+$subscription = "Acestus"
 $resourceGroup = "DscTest"
 $params = @{
     ChangeRequestNumber = "CH-000"

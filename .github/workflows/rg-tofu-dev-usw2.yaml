@@ -1,4 +1,4 @@
-name: 'rg-tofu-dev-ncus'
+name: "rg-tofu-dev-ncus"
 
 on:
   # push:
@@ -8,21 +8,21 @@ on:
   # pull_request:
   #   branches:
   #   - main
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
   # Job for non-main branches: Create PR and run plan
   branch-workflow:
     if: github.ref_name != 'main' && github.event_name == 'push'
-    name: 'Branch Workflow - Plan and Create PR'
+    name: "Branch Workflow - Plan and Create PR"
     env:
       ARM_CLIENT_ID: ${{ secrets.AZURE_AD_CLIENT_ID }}
       ARM_CLIENT_SECRET: ${{ secrets.AZURE_AD_CLIENT_SECRET }}
-      ARM_SUBSCRIPTION_ID: ${{ vars.SBOX_LEARNINGLAB_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.ACESTUS }}
       ARM_TENANT_ID: ${{ secrets.AZURE_AD_TENANT_ID }}
       location: ${{ vars.LOCATION }}
       ResourceEnvironment: ${{ vars.ResourceEnvironment }}
-      subscription_id: ${{ vars.SBOX_LEARNINGLAB_ID }}
+      subscription_id: ${{ vars.ACESTUS }}
       TOFU_VERSION: 1.10.5
     runs-on: ubuntu-latest
     environment: dev
@@ -36,67 +36,67 @@ jobs:
         working-directory: "./rg-tofu-dev-ncus"
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Setup OpenTofu
-      uses: opentofu/setup-opentofu@v1
-      with:
-        tofu_version: ${{ env.TOFU_VERSION }}
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: ${{ env.TOFU_VERSION }}
 
-    - name: 'OpenTofu Init'
-      run: tofu init
+      - name: "OpenTofu Init"
+        run: tofu init
 
-    - name: 'OpenTofu Validate'
-      run: tofu validate
+      - name: "OpenTofu Validate"
+        run: tofu validate
 
-    - name: 'OpenTofu Plan'
-      id: plan
-      run: |
-        tofu plan -no-color -out=tfplan 2>&1 | tee plan_output.txt
-        echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+      - name: "OpenTofu Plan"
+        id: plan
+        run: |
+          tofu plan -no-color -out=tfplan 2>&1 | tee plan_output.txt
+          echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
 
-    - name: Upload Plan Results
-      uses: actions/upload-artifact@v4
-      with:
-        name: terraform-plan-${{ github.ref_name }}
-        path: |
-          rg-tofu-dev-ncus/plan_output.txt
-          rg-tofu-dev-ncus/tfplan
-        retention-days: 30
+      - name: Upload Plan Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan-${{ github.ref_name }}
+          path: |
+            rg-tofu-dev-ncus/plan_output.txt
+            rg-tofu-dev-ncus/tfplan
+          retention-days: 30
 
-    - name: Plan Summary
-      run: |
-        echo "## 📋 OpenTofu Plan Summary" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
-        echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "<details>" >> $GITHUB_STEP_SUMMARY
-        echo "<summary>🔍 Click to view plan output</summary>" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`hcl" >> $GITHUB_STEP_SUMMARY
-        cat plan_output.txt >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        echo "</details>" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "🚀 **Next Steps:**" >> $GITHUB_STEP_SUMMARY
-        echo "1. Review the plan output above" >> $GITHUB_STEP_SUMMARY
-        echo "2. Create a Pull Request to main branch" >> $GITHUB_STEP_SUMMARY
-        echo "3. Get approval and merge to apply changes" >> $GITHUB_STEP_SUMMARY
+      - name: Plan Summary
+        run: |
+          echo "## 📋 OpenTofu Plan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "<details>" >> $GITHUB_STEP_SUMMARY
+          echo "<summary>🔍 Click to view plan output</summary>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`hcl" >> $GITHUB_STEP_SUMMARY
+          cat plan_output.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "</details>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🚀 **Next Steps:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. Review the plan output above" >> $GITHUB_STEP_SUMMARY
+          echo "2. Create a Pull Request to main branch" >> $GITHUB_STEP_SUMMARY
+          echo "3. Get approval and merge to apply changes" >> $GITHUB_STEP_SUMMARY
 
   # Job for PR validation: Run plan on PR
   pr-plan:
     if: github.event_name == 'pull_request'
-    name: 'PR Plan Validation'
+    name: "PR Plan Validation"
     env:
       ARM_CLIENT_ID: ${{ secrets.AZURE_AD_CLIENT_ID }}
       ARM_CLIENT_SECRET: ${{ secrets.AZURE_AD_CLIENT_SECRET }}
-      ARM_SUBSCRIPTION_ID: ${{ vars.SBOX_LEARNINGLAB_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.ACESTUS }}
       ARM_TENANT_ID: ${{ secrets.AZURE_AD_TENANT_ID }}
       location: ${{ vars.LOCATION }}
       ResourceEnvironment: ${{ vars.ResourceEnvironment }}
-      subscription_id: ${{ vars.SBOX_LEARNINGLAB_ID }}
+      subscription_id: ${{ vars.ACESTUS }}
       TOFU_VERSION: 1.10.5
     runs-on: ubuntu-latest
     environment: dev
@@ -111,90 +111,90 @@ jobs:
         working-directory: "./rg-tofu-dev-ncus"
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Setup OpenTofu
-      uses: opentofu/setup-opentofu@v1
-      with:
-        tofu_version: ${{ env.TOFU_VERSION }}
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: ${{ env.TOFU_VERSION }}
 
-    - name: 'OpenTofu Init'
-      run: tofu init
+      - name: "OpenTofu Init"
+        run: tofu init
 
-    - name: 'OpenTofu Validate'
-      run: tofu validate
+      - name: "OpenTofu Validate"
+        run: tofu validate
 
-    - name: 'OpenTofu Plan'
-      id: plan
-      run: |
-        tofu plan -no-color 2>&1 | tee plan_output.txt
-        echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+      - name: "OpenTofu Plan"
+        id: plan
+        run: |
+          tofu plan -no-color 2>&1 | tee plan_output.txt
+          echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
 
-    - name: Comment PR with Plan
-      uses: actions/github-script@v7
-      if: github.event_name == 'pull_request'
-      with:
-        script: |
-          const fs = require('fs');
-          const planOutput = fs.readFileSync('rg-tofu-dev-ncus/plan_output.txt', 'utf8');
-          const output = `## 📋 OpenTofu Plan Results
-          
-          **Status:** ${{ steps.plan.outputs.exit_code == '0' && '✅ Success' || '❌ Failed' }}
-          **Branch:** \`${{ github.head_ref }}\`
-          **Commit:** \`${{ github.sha }}\`
-          
-          <details>
-          <summary>🔍 Click to view plan output</summary>
-          
-          \`\`\`hcl
-          ${planOutput}
-          \`\`\`
-          </details>
-          
-          ---
-          ${planOutput.includes('No changes') ? '✨ **No infrastructure changes detected**' : '🚀 **Ready for review and apply!**'}
-          `;
-          
-          // Find existing comment
-          const comments = await github.rest.issues.listComments({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            issue_number: context.issue.number,
-          });
-          
-          const botComment = comments.data.find(comment => 
-            comment.user.type === 'Bot' && comment.body.includes('OpenTofu Plan Results')
-          );
-          
-          if (botComment) {
-            await github.rest.issues.updateComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              comment_id: botComment.id,
-              body: output
-            });
-          } else {
-            await github.rest.issues.createComment({
+      - name: Comment PR with Plan
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            const fs = require('fs');
+            const planOutput = fs.readFileSync('rg-tofu-dev-ncus/plan_output.txt', 'utf8');
+            const output = `## 📋 OpenTofu Plan Results
+
+            **Status:** ${{ steps.plan.outputs.exit_code == '0' && '✅ Success' || '❌ Failed' }}
+            **Branch:** \`${{ github.head_ref }}\`
+            **Commit:** \`${{ github.sha }}\`
+
+            <details>
+            <summary>🔍 Click to view plan output</summary>
+
+            \`\`\`hcl
+            ${planOutput}
+            \`\`\`
+            </details>
+
+            ---
+            ${planOutput.includes('No changes') ? '✨ **No infrastructure changes detected**' : '🚀 **Ready for review and apply!**'}
+            `;
+
+            // Find existing comment
+            const comments = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: output
             });
-          }
+
+            const botComment = comments.data.find(comment =>
+              comment.user.type === 'Bot' && comment.body.includes('OpenTofu Plan Results')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: output
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: output
+              });
+            }
 
   # Job for PR approval: Run apply and merge
   pr-apply:
     if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
-    name: 'Apply on PR Merge'
+    name: "Apply on PR Merge"
     env:
       ARM_CLIENT_ID: ${{ secrets.AZURE_AD_CLIENT_ID }}
       ARM_CLIENT_SECRET: ${{ secrets.AZURE_AD_CLIENT_SECRET }}
-      ARM_SUBSCRIPTION_ID: ${{ vars.SBOX_LEARNINGLAB_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.ACESTUS }}
       ARM_TENANT_ID: ${{ secrets.AZURE_AD_TENANT_ID }}
       location: ${{ vars.LOCATION }}
       ResourceEnvironment: ${{ vars.ResourceEnvironment }}
-      subscription_id: ${{ vars.SBOX_LEARNINGLAB_ID }}
+      subscription_id: ${{ vars.ACESTUS }}
       TOFU_VERSION: 1.10.5
     runs-on: ubuntu-latest
     environment: dev
@@ -208,57 +208,57 @@ jobs:
         working-directory: "./rg-tofu-dev-ncus"
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        ref: main
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
 
-    - name: Setup OpenTofu
-      uses: opentofu/setup-opentofu@v1
-      with:
-        tofu_version: ${{ env.TOFU_VERSION }}
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: ${{ env.TOFU_VERSION }}
 
-    - name: 'OpenTofu Init'
-      run: tofu init
+      - name: "OpenTofu Init"
+        run: tofu init
 
-    - name: 'OpenTofu Plan'
-      run: tofu plan -out=tfplan
+      - name: "OpenTofu Plan"
+        run: tofu plan -out=tfplan
 
-    - name: 'OpenTofu Apply'
-      id: apply
-      run: |
-        tofu apply -auto-approve tfplan
-        echo "apply_successful=true" >> $GITHUB_OUTPUT
+      - name: "OpenTofu Apply"
+        id: apply
+        run: |
+          tofu apply -auto-approve tfplan
+          echo "apply_successful=true" >> $GITHUB_OUTPUT
 
-    - name: Comment on PR with results
-      if: always()
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const applySuccessful = '${{ steps.apply.outputs.apply_successful }}' === 'true';
-          const body = applySuccessful 
-            ? '✅ **OpenTofu Apply Successful!** Infrastructure has been updated.' 
-            : '❌ **OpenTofu Apply Failed!** Please check the logs and resolve any issues.';
-          
-          await github.rest.issues.createComment({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            issue_number: context.payload.pull_request.number,
-            body: body
-          });
+      - name: Comment on PR with results
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const applySuccessful = '${{ steps.apply.outputs.apply_successful }}' === 'true';
+            const body = applySuccessful
+              ? '✅ **OpenTofu Apply Successful!** Infrastructure has been updated.'
+              : '❌ **OpenTofu Apply Failed!** Please check the logs and resolve any issues.';
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: body
+            });
 
   # Job for direct main branch pushes (existing functionality)
   main-branch:
     if: github.ref_name == 'main' && github.event_name == 'push'
-    name: 'Main Branch - Direct Apply'
+    name: "Main Branch - Direct Apply"
     env:
       ARM_CLIENT_ID: ${{ secrets.AZURE_AD_CLIENT_ID }}
       ARM_CLIENT_SECRET: ${{ secrets.AZURE_AD_CLIENT_SECRET }}
-      ARM_SUBSCRIPTION_ID: ${{ vars.SBOX_LEARNINGLAB_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.ACESTUS }}
       ARM_TENANT_ID: ${{ secrets.AZURE_AD_TENANT_ID }}
       location: ${{ vars.LOCATION }}
       ResourceEnvironment: ${{ vars.ResourceEnvironment }}
-      subscription_id: ${{ vars.SBOX_LEARNINGLAB_ID }}
+      subscription_id: ${{ vars.ACESTUS }}
       TOFU_VERSION: 1.10.5
     runs-on: ubuntu-latest
     environment: dev
@@ -269,22 +269,22 @@ jobs:
         working-directory: "./rg-tofu-dev-ncus"
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Setup OpenTofu
-      uses: opentofu/setup-opentofu@v1
-      with:
-        tofu_version: ${{ env.TOFU_VERSION }}
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: ${{ env.TOFU_VERSION }}
 
-    - name: 'OpenTofu Init'
-      run: tofu init
+      - name: "OpenTofu Init"
+        run: tofu init
 
-    - name: 'OpenTofu Validate'
-      run: tofu validate
+      - name: "OpenTofu Validate"
+        run: tofu validate
 
-    - name: 'OpenTofu Plan'
-      run: tofu plan -out=tfplan
+      - name: "OpenTofu Plan"
+        run: tofu plan -out=tfplan
 
-    - name: 'OpenTofu Apply'
-      run: tofu apply -auto-approve tfplan
+      - name: "OpenTofu Apply"
+        run: tofu apply -auto-approve tfplan

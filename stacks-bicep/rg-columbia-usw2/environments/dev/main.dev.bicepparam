@@ -23,7 +23,7 @@ param avdHostCount = 1
 param tags = {
   ManagedBy: 'https://github.com/<your-org>/<your-repo>'
   CreatedBy: '<your-username>'
-  Subscription: 'Sbox-710-Analytics'
+  Subscription: 'Acestus'
   Project: 'Columbia AVD Platform'
   Environment: 'Development'
   Application: 'Azure Virtual Desktop'

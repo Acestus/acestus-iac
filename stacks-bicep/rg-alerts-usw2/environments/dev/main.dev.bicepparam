@@ -9,6 +9,6 @@ param workspaceResourceId = '/subscriptions/<subscription-id>/resourcegroups/Ace
 param tags = {
   ManagedBy: 'https://github.com/<your-org>/<your-repo>'
   CreatedBy: '<your-username>'
-  Subscription: 'Sbox-710-Analytics'
+  Subscription: 'Acestus'
   Project: 'Acestus Analytics Platform'
 }

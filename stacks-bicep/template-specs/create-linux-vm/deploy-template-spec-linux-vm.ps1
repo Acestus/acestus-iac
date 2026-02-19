@@ -16,5 +16,5 @@ $params = @{
     "instanceNumber" = "002"
 }
 $TemplateSpecId = "/subscriptions/<subscription-id>/resourceGroups/TemplateSpecs/providers/Microsoft.Resources/templateSpecs/DeployNetToolsVM/versions/24.12"
-set-azcontext -subscription "Sbox-510-Infrastructure"
+set-azcontext -subscription "Acestus"
 New-AzResourceGroupDeployment -TemplateSpecId $TemplateSpecId -ResourceGroupName $RGName -TemplateParameterObject $params

@@ -12,5 +12,5 @@ param tags = {
   CAFName: '${projectName}-${environment}-${region}-${instanceNumber}'
   Project: 'Custom Module Testing'
   Purpose: 'Testing custom storage account module'
-  Subscription: 'Sbox-510-Infrastructure'
+  Subscription: 'Acestus'
 }

@@ -1,4 +1,4 @@
-$Subscription = "Sbox-LearningLab"
+$Subscription = "Acestus"
 $StackName = "stack-mgmt510-corp-eus2-dev"
 $RGName = "rg-mgmt510-corp-eus2-dev"
 $storageAccountName = "stmgmt510corpeus2dev"

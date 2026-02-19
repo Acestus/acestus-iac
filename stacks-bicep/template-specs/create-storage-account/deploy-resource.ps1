@@ -1,4 +1,4 @@
-$subscription = "Sbox-510-Infrastructure"
+$subscription = "Acestus"
 $resourceGroup = "log-data"
 $templateSpecId = "/subscriptions/<subscription-id>/resourceGroups/TemplateSpecs/providers/Microsoft.Resources/templateSpecs/DeployStorageAccount"
 $params = @{

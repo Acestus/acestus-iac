@@ -13,6 +13,7 @@ param tags = {
   Project: 'Time Logger - AKS .NET Microservice'
   CAFName: '${projectName}-${environment}-${regionCode}-${instanceNumber}'
   CostCenter: 'Development'
+  Subscription: 'Acestus
 }
 
 // AKS Configuration - Cost optimized for dev

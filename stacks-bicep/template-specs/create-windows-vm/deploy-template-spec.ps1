@@ -1,4 +1,4 @@
-# Update the template spec 
+# Update the template spec
 pwsh
 cd ~/git/bicep-infra/create-windows-vm
 set-azcontext -subscription "Management"
@@ -10,7 +10,7 @@ $params = @{
     instanceNumber = "004"
     "adminUsername" = "adminuser"
 }
-set-azcontext -subscription "Sbox-510-Infrastructure"
+set-azcontext -subscription "Acestus"
 New-AzResourceGroupDeployment -TemplateSpecId $TemplateSpecId -ResourceGroupName DscTest -TemplateParameterObject $params
 
 # Get the VM
@@ -35,5 +35,3 @@ $TemplateSpecId
 
 
 New-AzResourceGroupDeployment -TemplateSpecId $TemplateSpecId -ResourceGroupName DscTest
-
-
