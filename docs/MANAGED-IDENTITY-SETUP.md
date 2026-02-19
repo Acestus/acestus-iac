@@ -1,6 +1,6 @@
 # Managed Identity Setup for GitHub Actions
 
-This document describes how to configure a User-assigned Managed Identity (UMI) for GitHub Actions deployments using OIDC authentication.
+This guide explains how to securely configure a User-assigned Managed Identity (UMI) for GitHub Actions deployments using OpenID Connect (OIDC), including all required Azure roles and GitHub variable setup.
 
 ## Overview
 
@@ -9,8 +9,8 @@ GitHub Actions workflows authenticate to Azure using OpenID Connect (OIDC) throu
 ## Prerequisites
 
 - Azure subscription
-- Resource group for the application
-- User-assigned managed identity
+- Resource group for your application
+- User-assigned managed identity (UMI)
 - GitHub repository with Actions enabled
 
 ## Step 1: Create User-Assigned Managed Identity
@@ -39,6 +39,158 @@ az identity create \
   --location "westus2"
 ```
 
+---
+
+## 2. Configure Federated Identity Credential (OIDC)
+
+This allows GitHub Actions to authenticate as the managed identity using OIDC.
+
+**For environment-based workflows:**
+```sh
+az identity federated-credential create \
+  --name "github-<org>-<repo>-env-<environment>" \
+  --identity-name "umi-<project>-<env>-<region>-<seq>" \
+  --resource-group "rg-<project>-<env>-<region>-<seq>" \
+  --issuer "https://token.actions.githubusercontent.com" \
+  --subject "repo:<org>/<repo>:environment:<environment>" \
+  --audience api://AzureADTokenExchange
+```
+
+**For branch-based workflows:**
+```sh
+az identity federated-credential create \
+  --name "github-<org>-<repo>-<branch>" \
+  --identity-name "umi-<project>-<env>-<region>-<seq>" \
+  --resource-group "rg-<project>-<env>-<region>-<seq>" \
+  --issuer "https://token.actions.githubusercontent.com" \
+  --subject "repo:<org>/<repo>:ref:refs/heads/<branch>" \
+  --audience api://AzureADTokenExchange
+```
+
+---
+
+## 3. Assign Azure Roles
+
+The managed identity must have these roles:
+
+- **Contributor** (at subscription or resource group scope)
+- **User Access Administrator** (at subscription or resource group scope, required for roleAssignments in Bicep)
+- **AcrPull** and **AcrPush** (on your ACR resource)
+- **Azure Kubernetes Service Cluster User Role** (on your AKS resource)
+- **Log Analytics Contributor** (if using shared Log Analytics)
+
+**Example (subscription scope):**
+```sh
+CLIENT_ID=<your-client-id>
+SUBSCRIPTION_ID=<your-subscription-id>
+
+# Contributor
+az role assignment create --assignee "$CLIENT_ID" --role "Contributor" --scope "/subscriptions/$SUBSCRIPTION_ID"
+# User Access Administrator (required for Bicep role assignments)
+az role assignment create --assignee "$CLIENT_ID" --role "User Access Administrator" --scope "/subscriptions/$SUBSCRIPTION_ID"
+```
+
+**ACR, AKS, and Log Analytics roles:**
+```sh
+# ACR
+az role assignment create --assignee "$CLIENT_ID" --role "AcrPull" --scope "/subscriptions/<acr-sub>/resourceGroups/<acr-rg>/providers/Microsoft.ContainerRegistry/registries/<acr-name>"
+az role assignment create --assignee "$CLIENT_ID" --role "AcrPush" --scope "/subscriptions/<acr-sub>/resourceGroups/<acr-rg>/providers/Microsoft.ContainerRegistry/registries/<acr-name>"
+# AKS
+az role assignment create --assignee "$CLIENT_ID" --role "Azure Kubernetes Service Cluster User Role" --scope "/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.ContainerService/managedClusters/<aks-name>"
+# Log Analytics (if needed)
+az role assignment create --assignee "$CLIENT_ID" --role "Log Analytics Contributor" --scope "/subscriptions/<law-sub>/resourceGroups/<law-rg>/providers/Microsoft.OperationalInsights/workspaces/<law-name>"
+```
+
+---
+
+## 4. Set GitHub Variables
+
+Set these in your repository or environment (recommended):
+
+- `AZURE_CLIENT_ID` (the managed identity clientId)
+- `AZURE_TENANT_ID` (your Azure tenantId)
+- `AZURE_SUBSCRIPTION_ID` (your subscriptionId)
+
+**Example:**
+```sh
+gh variable set AZURE_CLIENT_ID --repo <org>/<repo> --body "<client-id>"
+gh variable set AZURE_TENANT_ID --repo <org>/<repo> --body "<tenant-id>"
+gh variable set AZURE_SUBSCRIPTION_ID --repo <org>/<repo> --body "<subscription-id>"
+```
+
+---
+
+## 5. Use in GitHub Actions Workflow
+
+```yaml
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: dev  # or your environment name
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Azure Login with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+```
+
+---
+
+## Validation & Troubleshooting
+
+- **Check federated credentials:**
+  ```sh
+  az identity federated-credential list --identity-name <umi-name> --resource-group <rg-name> --output table
+  ```
+- **Check role assignments:**
+  ```sh
+  az role assignment list --assignee <client-id> --all --output table
+  ```
+- **Check GitHub variables:**
+  ```sh
+  gh variable list --repo <org>/<repo>
+  ```
+
+**Common errors:**
+- "No matching federated identity record found": Check the subject matches your workflow (environment vs branch)
+- "AuthorizationFailed": Ensure User Access Administrator and Contributor roles are assigned
+
+---
+
+## Security Best Practices
+
+1. Use GitHub environments for production deployments
+2. Grant only the minimum roles needed
+3. Prefer resource group scope for least privilege
+4. Regularly audit federated credentials and role assignments
+
+---
+
+## Example: Full Setup
+
+```sh
+# 1. Create managed identity
+az identity create --name "umi-myproject-dev-scus-001" --resource-group "rg-myproject-dev-scus-001" --location "southcentralus"
+# 2. Add federated credential for environment
+az identity federated-credential create --name "github-your-org-your-repo-env-dev" --identity-name "umi-myproject-dev-scus-001" --resource-group "rg-myproject-dev-scus-001" --issuer "https://token.actions.githubusercontent.com" --subject "repo:your-org/your-repo:environment:dev" --audience api://AzureADTokenExchange
+# 3. Assign roles
+az role assignment create --assignee <client-id> --role "Contributor" --scope "/subscriptions/<sub>"
+az role assignment create --assignee <client-id> --role "User Access Administrator" --scope "/subscriptions/<sub>"
+az role assignment create --assignee <client-id> --role "AcrPull" --scope "/subscriptions/<acr-sub>/resourceGroups/<acr-rg>/providers/Microsoft.ContainerRegistry/registries/<acr-name>"
+az role assignment create --assignee <client-id> --role "AcrPush" --scope "/subscriptions/<acr-sub>/resourceGroups/<acr-rg>/providers/Microsoft.ContainerRegistry/registries/<acr-name>"
+# 4. Set GitHub variables
+gh variable set AZURE_CLIENT_ID --repo <org>/<repo> --body "<client-id>"
+gh variable set AZURE_TENANT_ID --repo <org>/<repo> --body "<tenant-id>"
+gh variable set AZURE_SUBSCRIPTION_ID --repo <org>/<repo> --body "<subscription-id>"
+```
 ## Step 2: Configure Federated Identity Credentials (OIDC)
 
 Federated credentials allow GitHub Actions to authenticate as the managed identity.

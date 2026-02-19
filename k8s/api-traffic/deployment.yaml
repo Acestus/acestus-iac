@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: api-traffic
-          image: <your-acr>.azurecr.io/api-traffic:latest
+          image: acracestusdevscus001.azurecr.io/api-traffic:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
