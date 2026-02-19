@@ -1,6 +1,6 @@
 using '../../main.bicep'
 
-param projectName = 'timelogger'
+param projectName = 'acestus'
 param environment = 'dev'
 param regionCode = 'eus1'
 param instanceNumber = '001'
@@ -13,11 +13,11 @@ param tags = {
   Project: 'Time Logger - AKS .NET Microservice'
   CAFName: '${projectName}-${environment}-${regionCode}-${instanceNumber}'
   CostCenter: 'Development'
-  Subscription: 'Acestus
+  Subscription: 'Acestus'
 }
 
 // AKS Configuration - Cost optimized for dev
-param kubernetesVersion = '1.30'
+param kubernetesVersion = '1.32.0'
 param aksSkuTier = 'Free'
 param systemPoolSize = 'CostOptimised'
 param agentPoolSize = '' // No additional agent pool for dev

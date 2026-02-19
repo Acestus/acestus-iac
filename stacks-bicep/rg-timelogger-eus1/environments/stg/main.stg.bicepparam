@@ -11,6 +11,7 @@ param tags = {
   Project: 'Time Logger - AKS .NET Microservice'
   ManagedBy: 'https://github.com/your-org/acestus-iac'
   CostCenter: 'Staging'
+  Subscription: 'Acestus'
 }
 
 // AKS Configuration - Balanced for staging

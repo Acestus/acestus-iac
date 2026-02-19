@@ -5,22 +5,22 @@
 param(
     [Parameter(Mandatory = $true)]
     [string]$ModuleName,
-    
+
     [Parameter(Mandatory = $true)]
     [string]$Version,
-    
+
     [Parameter(Mandatory = $false)]
     [string]$RegistryName = "acrskpmgtcrdevcus001",
-    
+
     [Parameter(Mandatory = $false)]
     [string]$ModulePrefix = "bicep/modules",
-    
+
     [Parameter(Mandatory = $false)]
     [string]$ModulesPath = "..\modules-bicep",
-    
+
     [Parameter(Mandatory = $false)]
     [switch]$Force,
-    
+
     [Parameter(Mandatory = $false)]
     [switch]$WhatIf
 )
@@ -100,30 +100,30 @@ try {
     $targetReference = "br:$RegistryName.azurecr.io/$ModulePrefix/$ModuleName`:$Version"
     Write-Host "📤 Publishing module..." -ForegroundColor Cyan
     Write-Host "Target: $targetReference" -ForegroundColor Yellow
-    
+
     az bicep publish --file $BicepFile --target $targetReference
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Failed to publish module"
     }
 
     Write-Host "✅ Module published successfully!" -ForegroundColor Green
-    Write-Host "📋 Module Details:" -ForegroundColor Yellow
+    Write-Host "Module Details:" -ForegroundColor Yellow
     Write-Host "   Name: $ModuleName"
     Write-Host "   Version: $Version"
     Write-Host "   Reference: $targetReference"
-    
+
     # Show repository info (non-critical, wrapped in try-catch)
-    Write-Host "📊 Repository Status:" -ForegroundColor Yellow
+    Write-Host "Repository Status:" -ForegroundColor Yellow
     try {
         az acr repository show-tags --name $RegistryName --repository "$ModulePrefix/$ModuleName" --orderby time_desc --top 5 --output table 2>$null
     } catch {
         Write-Host "   (Unable to retrieve tag details)" -ForegroundColor Gray
     }
 
-    Write-Host "`n🎉 Module $ModuleName $Version published successfully to $RegistryName!" -ForegroundColor Green
+    Write-Host "Module $ModuleName $Version published successfully to $RegistryName!" -ForegroundColor Green
 
 } catch {
-    Write-Host "❌ Error during module publishing: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "Error during module publishing: $($_.Exception.Message)" -ForegroundColor Red
     Write-Host $_.ScriptStackTrace -ForegroundColor Red
     exit 1
 }

@@ -23,14 +23,14 @@ param tags object = {}
 // ============================================================================
 
 @description('Name for the Log Analytics workspace (defaults to log-{name})')
-param logAnalyticsName string = ''
+param logAnalyticsName string = 'law-${name}'
 
 // ============================================================================
 // Parameters - Application Insights Configuration
 // ============================================================================
 
 @description('Name for Application Insights (defaults to appi-{name})')
-param applicationInsightsName string = ''
+param applicationInsightsName string = 'ai-${name}'
 
 // ============================================================================
 // Parameters - Dashboard Configuration

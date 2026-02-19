@@ -5,16 +5,16 @@
 param(
     [Parameter(Mandatory = $true)]
     [string]$Version,
-    
+
     [Parameter(Mandatory = $false)]
     [string[]]$RegistryNames = @("acrskpmgtcrdevjpe001", "acrskpmgtcrprdcus001"),
-    
+
     [Parameter(Mandatory = $false)]
     [string]$ModulesPath = "..\modules-bicep",
-    
+
     [Parameter(Mandatory = $false)]
     [switch]$Force,
-    
+
     [Parameter(Mandatory = $false)]
     [switch]$WhatIf
 )
@@ -51,11 +51,11 @@ if ($modules.Count -eq 0) {
     return
 }
 
-Write-Host "📁 Found $($modules.Count) modules:" -ForegroundColor Cyan
+Write-Host "Found $($modules.Count) modules:" -ForegroundColor Cyan
 $modules | ForEach-Object { Write-Host "   - $($_.Name)" -ForegroundColor White }
 
 if ($WhatIf) {
-    Write-Host "`n🔍 WHATIF MODE - No changes will be made" -ForegroundColor Yellow
+    Write-Host "`nWHATIF MODE - No changes will be made" -ForegroundColor Yellow
     foreach ($RegistryName in $RegistryNames) {
         Write-Host "`nRegistry: $RegistryName" -ForegroundColor Cyan
         $modules | ForEach-Object {
@@ -73,17 +73,17 @@ $totalFailureCount = 0
 # Publish each module to each registry
 foreach ($RegistryName in $RegistryNames) {
     Write-Host "`n" + "#"*60 -ForegroundColor Magenta
-    Write-Host "🏭 Publishing to Registry: $RegistryName" -ForegroundColor Magenta
+    Write-Host "Publishing to Registry: $RegistryName" -ForegroundColor Magenta
     Write-Host "#"*60 -ForegroundColor Magenta
-    
+
     $results = @()
     $successCount = 0
     $failureCount = 0
 foreach ($module in $modules) {
     Write-Host "`n" + "="*60 -ForegroundColor Blue
-    Write-Host "📦 Processing module: $($module.Name)" -ForegroundColor Blue
+    Write-Host "Processing module: $($module.Name)" -ForegroundColor Blue
     Write-Host "="*60 -ForegroundColor Blue
-    
+
     try {
         $publishScript = Join-Path -Path $ScriptRoot -ChildPath "Publish-BicepModule.ps1"
         $publishParams = @{
@@ -92,9 +92,9 @@ foreach ($module in $modules) {
             RegistryName = $RegistryName
             Force = $Force
         }
-        
+
         & $publishScript @publishParams
-        
+
         $results += [PSCustomObject]@{
             Module = $module.Name
             Status = "Success"
@@ -102,9 +102,9 @@ foreach ($module in $modules) {
             Error = $null
         }
         $successCount++
-        
-        Write-Host "✅ $($module.Name) published successfully" -ForegroundColor Green
-        
+
+        Write-Host "$($module.Name) published successfully" -ForegroundColor Green
+
     } catch {
         $results += [PSCustomObject]@{
             Module = $module.Name
@@ -113,21 +113,20 @@ foreach ($module in $modules) {
             Error = $_.Exception.Message
         }
         $failureCount++
-        
-        Write-Host "❌ Failed to publish $($module.Name): $($_.Exception.Message)" -ForegroundColor Red
+
+        Write-Host "Failed to publish $($module.Name): $($_.Exception.Message)" -ForegroundColor Red
     }
 }
 
     $allResults[$RegistryName] = $results
     $totalSuccessCount += $successCount
     $totalFailureCount += $failureCount
-    
-    Write-Host "`n📊 Registry $RegistryName Summary: $successCount succeeded, $failureCount failed" -ForegroundColor $(if ($failureCount -gt 0) { 'Yellow' } else { 'Green' })
+    Write-Host "\nRegistry $RegistryName Summary: $successCount succeeded, $failureCount failed" -ForegroundColor $(if ($failureCount -gt 0) { 'Yellow' } else { 'Green' })
 }
 
 # Summary
-Write-Host "`n" + "="*60 -ForegroundColor Green
-Write-Host "📊 PUBLICATION SUMMARY" -ForegroundColor Green
+Write-Host "\n" + "="*60 -ForegroundColor Green
+Write-Host "PUBLICATION SUMMARY" -ForegroundColor Green
 Write-Host "="*60 -ForegroundColor Green
 
 Write-Host "Total Registries: $($RegistryNames.Count)" -ForegroundColor White
@@ -135,22 +134,22 @@ Write-Host "Total Module Publications: $($modules.Count * $RegistryNames.Count)"
 Write-Host "Successful: $totalSuccessCount" -ForegroundColor Green
 Write-Host "Failed: $totalFailureCount" -ForegroundColor $(if ($totalFailureCount -gt 0) { 'Red' } else { 'Green' })
 
-Write-Host "`n📋 Detailed Results:" -ForegroundColor Yellow
+Write-Host "\nDetailed Results:" -ForegroundColor Yellow
 foreach ($RegistryName in $RegistryNames) {
-    Write-Host "`n  Registry: $RegistryName" -ForegroundColor Cyan
+    Write-Host "\n  Registry: $RegistryName" -ForegroundColor Cyan
     $allResults[$RegistryName] | Format-Table -Property Module, Status, Version, Error -AutoSize
 }
 
 if ($totalFailureCount -gt 0) {
-    Write-Host "⚠️  Some modules failed to publish. Check the errors above." -ForegroundColor Red
+    Write-Host "Some modules failed to publish. Check the errors above." -ForegroundColor Red
     exit 1
 } else {
-    Write-Host "🎉 All modules published successfully to all registries!" -ForegroundColor Green
+    Write-Host "All modules published successfully to all registries!" -ForegroundColor Green
 }
 
 # Show final ACR status for each registry
 foreach ($RegistryName in $RegistryNames) {
-    Write-Host "`n📊 Current ACR Module Status for $RegistryName`:" -ForegroundColor Yellow
+    Write-Host "\nCurrent ACR Module Status for $RegistryName`:" -ForegroundColor Yellow
     try {
         az acr repository list --name $RegistryName --output table
     } catch {
