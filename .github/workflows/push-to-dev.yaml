@@ -30,7 +30,7 @@ jobs:
     # with:
     #   environment: dev
     #   azure_tenant_id: ${{ vars.AZURE_TENANT_ID }}
-    #   azure_client_id: ${{ vars.AZURE_CLIENT_ID_DEV }}
+    #   azure_client_id: ${{ vars.UMI_ACESTUS_DEV_EUS1_001 }}
     #   azure_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
     #   resource_group_name: rg-timelogger-dev-ncus-001
     #   stack_name: stack-timelogger-dev-ncus-001

@@ -144,20 +144,20 @@ param enableVaultForTemplateDeployment bool = true
 // ============================================================================
 
 module aksAzdPattern 'br/public:avm/ptn/azd/aks:0.2.0' = {
-  name: '${deployment().name}-avm-aks'
+  name: 'stack-aks-${name}'
   params: {
     // Identity
-    name: name
+    name: 'umi-${name}'
     location: location
     tags: tags
-    
+
     // Associated resources
     containerRegistryName: containerRegistryName
     keyVaultName: keyVaultName
     monitoringWorkspaceResourceId: monitoringWorkspaceResourceId
     principalId: principalId
     principalType: principalType
-    
+
     // Kubernetes configuration
     kubernetesVersion: kubernetesVersion
     skuTier: skuTier
@@ -165,7 +165,7 @@ module aksAzdPattern 'br/public:avm/ptn/azd/aks:0.2.0' = {
     agentPoolSize: agentPoolSize
     systemPoolConfig: !empty(systemPoolConfig) ? systemPoolConfig : null
     agentPoolConfig: !empty(agentPoolConfig) ? agentPoolConfig : null
-    
+
     // Network configuration
     networkDataplane: networkDataplane
     networkPlugin: networkPlugin
@@ -176,16 +176,16 @@ module aksAzdPattern 'br/public:avm/ptn/azd/aks:0.2.0' = {
     podCidr: !empty(podCidr) ? podCidr : null
     dnsPrefix: !empty(dnsPrefix) ? dnsPrefix : null
     publicNetworkAccess: publicNetworkAccess
-    
+
     // Security configuration
     enableRbacAuthorization: enableRbacAuthorization
     enableAzureRbac: enableAzureRbac
     disableLocalAccounts: disableLocalAccounts
     enableKeyvaultSecretsProvider: enableKeyvaultSecretsProvider
-    
+
     // Container Registry configuration
     acrSku: acrSku
-    
+
     // Key Vault configuration
     enablePurgeProtection: enablePurgeProtection
     enableVaultForDeployment: enableVaultForDeployment
