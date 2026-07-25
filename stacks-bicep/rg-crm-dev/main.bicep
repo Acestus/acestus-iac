@@ -32,7 +32,6 @@ var gitHubActionsSubjects = [
   'repo:${gitHubActionsRepository}:environment:${environment}'
   'repo:${gitHubActionsRepository}:ref:refs/heads/main'
 ]
-var storageTableRoleDefinitionId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '0a9a7e1f-b9d0-4cc4-a60d-0319b160aaa3')
 
 resource staticWebApp 'Microsoft.Web/staticSites@2023-12-01' existing = {
   name: staticWebAppName
@@ -77,16 +76,6 @@ module userManagedIdentity '../../modules-bicep/user-managed-identity/user-manag
         ]
       }
     ]
-  }
-}
-
-resource dataStorageTableContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(dataStorageAccount.id, userManagedIdentityName, storageTableRoleDefinitionId)
-  scope: dataStorageAccount
-  properties: {
-    roleDefinitionId: storageTableRoleDefinitionId
-    principalId: userManagedIdentity.outputs.principalId
-    principalType: 'ServicePrincipal'
   }
 }
 
