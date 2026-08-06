@@ -41,6 +41,10 @@ resource functionStorageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' e
   name: functionStorageAccountName
 }
 
+resource functionDeploymentContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = {
+  name: '${functionStorageAccount.name}/default/function-deployments'
+}
+
 resource dataStorageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
   name: dataStorageAccountName
 }
